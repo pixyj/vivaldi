@@ -4,6 +4,8 @@ defmodule Vivaldi.Simulation.CentralizedAlgo do
   Let's test it out. 
   """
 
+  alias Vivaldi.Simulation.Vector
+
   def create_coordinate_cluster(n, type: :circular, radius: r) do
     angle_step = 2 * :math.pi / n
     0..(n-1)
@@ -19,17 +21,8 @@ defmodule Vivaldi.Simulation.CentralizedAlgo do
       x_i = Enum.at(coordinates, i)
       Enum.map(0..(count-1), fn j ->
         x_j = Enum.at(coordinates, j)
-        distance(x_i, x_j)
+        Vector.distance(x_i, x_j)
       end)
     end)
   end
-
-  def distance(x_i, x_j) do
-    Enum.zip(x_i, x_j)
-    |> Enum.map(fn {a, b} -> a - b end)
-    |> Enum.map(&(&1 * &1))
-    |> Enum.reduce(&(&1 + &2))
-    |> :math.sqrt()
-  end
-  
 end
