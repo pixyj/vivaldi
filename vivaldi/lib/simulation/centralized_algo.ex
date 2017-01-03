@@ -6,6 +6,12 @@ defmodule Vivaldi.Simulation.CentralizedAlgo do
 
   alias Vivaldi.Simulation.Vector
 
+  @doc """
+  Run a simulation with n nodes distributed along the circumference of a circle. 
+  The error function decreases monotonically after each iteration, and reaches close to zero, 
+  since we have ideal conditions here. 
+  If the error oscillates, try changing the value of `t`
+  """
   def run(n) do
     points = create_coordinate_cluster(n, type: :circular, radius: n)
     latencies = get_latency_matrix(points)
@@ -13,9 +19,9 @@ defmodule Vivaldi.Simulation.CentralizedAlgo do
     initial_x = get_initial_x(n)
     computed_x = compute_coordinates(n, latencies, initial_x, 0.05, 200, 0)
 
-    computed_x = Enum.map(0..(n-1), fn i -> computed_x[i] end)
-    computed_latencies = get_latency_matrix(computed_x)
-    {computed_x, computed_latencies}
+    computed_x_list = Enum.map(0..(n-1), fn i -> computed_x[i] end)
+    computed_latencies = get_latency_matrix(computed_x_list)
+    {computed_x_list, computed_latencies}
 
   end
 
@@ -40,11 +46,13 @@ defmodule Vivaldi.Simulation.CentralizedAlgo do
   end
 
   def compute_coordinates(n, latencies, x, t, max_iterations, iteration) do
+
+    # Print Total Error
     x_list = Enum.map(0..(n-1), fn i -> x[i] end)
     computed_latencies = get_latency_matrix(x_list)
     cost = compute_total_error(n, latencies, computed_latencies)
-    IO.puts "Iteration: #{iteration}, Cost: #{cost}"
-    # IO.puts "#{inspect x}"
+    IO.puts "Iteration: #{iteration}, Error: #{cost}"
+
     if iteration == max_iterations do
       x
     else
