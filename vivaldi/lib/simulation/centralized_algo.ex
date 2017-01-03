@@ -8,6 +8,7 @@ defmodule Vivaldi.Simulation.CentralizedAlgo do
 
   @doc """
   Run a simulation with n nodes distributed along the circumference of a circle. 
+  See "Figure 1: The centralized algorithm" in the paper. 
   The error function decreases monotonically after each iteration, and reaches close to zero, 
   since we have ideal conditions here. 
   If the error oscillates, try changing the value of `t`
@@ -22,7 +23,6 @@ defmodule Vivaldi.Simulation.CentralizedAlgo do
     computed_x_list = Enum.map(0..(n-1), fn i -> computed_x[i] end)
     computed_latencies = get_latency_matrix(computed_x_list)
     {computed_x_list, computed_latencies}
-
   end
 
   def get_initial_x(n) do
