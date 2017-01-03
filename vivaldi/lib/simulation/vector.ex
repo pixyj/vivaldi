@@ -13,6 +13,11 @@ defmodule Vivaldi.Simulation.Vector do
     |> Enum.map(fn {a, b} -> (a - b) end)
   end
 
+  def add(p1, p2) do
+    Enum.zip(p1, p2)
+    |> Enum.map(fn {a, b} -> (a + b) end)
+  end
+
   def magnitude(p1) do
     p1
     |> Enum.map(&(&1 * &1))
