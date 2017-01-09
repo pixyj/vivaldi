@@ -2,9 +2,14 @@ defmodule CentralizedAlgoTest do
   use ExUnit.Case
   
   alias Vivaldi.Simulation.CentralizedAlgo, as: CA
+  alias Vivaldi.Simulation.Runner, as: Runner
+
+  test "test compute_coordinates" do
+    CA.run(4, 2)
+  end
 
   test "create_coordinate_cluster" do
-    points = CA.create_coordinate_cluster 4, [type: :circular, radius: 2]
+    points = Runner.create_coordinate_cluster 4, [type: :circular, radius: 2]
     expected_points = [[2, 0], [0, 2], [-2, 0], [0, -2]]
 
     Enum.zip(points, expected_points)
@@ -19,8 +24,8 @@ defmodule CentralizedAlgoTest do
   end
 
   test "latency matrix" do
-    points = CA.create_coordinate_cluster 4, [type: :circular, radius: 1]
-    latency_matrix = CA.get_latency_matrix(points)
+    points = Runner.create_coordinate_cluster 4, [type: :circular, radius: 1]
+    latency_matrix = Runner.get_latency_matrix(points)
     expected = [
       [0, :math.sqrt(2), 2, :math.sqrt(2)],
       [:math.sqrt(2), 0, :math.sqrt(2), 2],
