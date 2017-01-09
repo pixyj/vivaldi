@@ -7,7 +7,10 @@ defmodule Vivaldi.Mixfile do
      elixir: "~> 1.3",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     deps: deps()]
+     deps: deps(),
+     test_coverage: [tool: ExCoveralls],
+     preferred_cli_env: ["coveralls": :test, "coveralls.detail": :test, "coveralls.post": :test, "coveralls.html": :test],
+    ]
   end
 
   # Configuration for the OTP application
@@ -28,6 +31,8 @@ defmodule Vivaldi.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:ex_doc, "~> 0.14.5"}]
+    [{:ex_doc, "~> 0.14.5"},
+     {:excoveralls, "~> 0.6.0"},
+    ]
   end
 end
