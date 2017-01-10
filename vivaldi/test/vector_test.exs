@@ -62,13 +62,19 @@ defmodule VectorTest do
 
   test "Unit vector at" do
     inputs_and_results = [
-     {[1, 1], [0, 0], [:math.sin(:math.pi/4), :math.sin(:math.pi/4)]},
-     {[0, 0, 0], [0, 0, 0], [0, 0, 0]}
+     {[1, 1], [0, 0], [:math.cos(:math.pi/4), :math.sin(:math.pi/4)]},
+     {[2, 1], [2, 0], [0, 1]}
     ]
 
     Enum.each(inputs_and_results, fn {p1, p2, expected} ->
       result = Vector.unit_vector_at(p1, p2)
-      assert expected == result
+      Enum.zip(result, expected)
+      |> Enum.map(fn {r, e} ->
+        assert abs(r - e) < 0.0001
+      end)
     end)
+
+    rand_unit_vector = Vector.unit_vector_at([0, 0], [0, 0])
+    assert abs(Vector.magnitude(rand_unit_vector) - 1.0) < 0.00001
   end
 end
