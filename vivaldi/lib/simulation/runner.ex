@@ -9,9 +9,9 @@ defmodule Vivaldi.Simulation.Runner do
     points = create_coordinate_cluster(n, type: :circular, radius: radius)
     latencies = get_latency_matrix(points)
 
-    initial_x = get_initial_x(n)
-    computed_x = compute_coordinates(n, latencies, initial_x, 0.05,
-                                     200, 0, compute_next_x_i_func)
+    initial_x = get_initial_x(n, radius)
+    computed_x = compute_coordinates(n, latencies, initial_x, 0.1,
+                                     2000, 0, compute_next_x_i_func)
 
     computed_x_list = Enum.map(0..(n-1), fn i -> computed_x[i] end)
     computed_latencies = get_latency_matrix(computed_x_list)
@@ -23,10 +23,10 @@ defmodule Vivaldi.Simulation.Runner do
                           max_iterations, iteration,
                           compute_next_x_i_func) do
     # Print Total Error
-    x_list = Enum.map(0..(n-1), fn i -> x[i] end)
-    computed_latencies = get_latency_matrix(x_list)
-    cost = compute_total_error(n, latencies, computed_latencies)
-    IO.puts "Iteration: #{iteration}, Error: #{cost}"
+    # x_list = Enum.map(0..(n-1), fn i -> x[i] end)
+    # computed_latencies = get_latency_matrix(x_list)
+    # cost = compute_total_error(n, latencies, computed_latencies)
+    # IO.puts "Iteration: #{iteration}, Error: #{cost}"
 
     if iteration == max_iterations do
       x
@@ -47,16 +47,22 @@ defmodule Vivaldi.Simulation.Runner do
       for j <- 0..i do
         a_ij = Enum.at(a_i, j)
         b_ij = Enum.at(b_i, j)
-        diff = a_ij - b_ij
-        diff * diff
+        if a_ij != 0 do
+          abs(a_ij - b_ij) / a_ij
+        else
+          0
+        end
       end
     end
-    List.flatten(pairwise_errors) |> Enum.reduce(&(&1 + &2))
+    pairwise_errors = List.flatten(pairwise_errors)
+    Enum.sum(pairwise_errors) / (Enum.count(pairwise_errors) - n)
   end
 
-  def get_initial_x(n) do
+  def get_initial_x(n, radius) do
     0..(n-1)
-    |> Enum.map(fn i -> {i, [:rand.uniform() - 0.5, :rand.uniform() - 0.5]} end)
+    |> Enum.map(fn i ->
+      {i, [radius * :rand.uniform() - 0.5, radius * :rand.uniform() - 0.5]} 
+    end)
     |> Enum.into(%{})
   end
 
