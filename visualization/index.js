@@ -19,7 +19,7 @@ function run() {
                     y: x_i[1]
                 });
                 //chart.redraw(); 
-            }, i * 200); 
+            }, i * 50); 
         })(i); 
     }
 }
