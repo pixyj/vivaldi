@@ -41,6 +41,7 @@ defmodule Vivaldi.Simulation.Vector do
   According to the paper:
   > Because all nodes start at the same location, Vivaldi must separate them somehow.
   > Vivaldi does this by defining u(0) to be a unit-length vector in a randomly chosen direction
+  
   When p1 and p2 are non-zero vectors, then the conventional definition of a unit vector is used.
   """
   def unit_vector_at(p1, p2) do
