@@ -5,7 +5,9 @@ defmodule CentralizedAlgoTest do
   alias Vivaldi.Simulation.Runner, as: Runner
 
   test "test compute_coordinates" do
-    CA.run(4, 2)
+    {_, _, error} = CA.run(10, 4)
+    IO.puts "******** CA error***************** #{error}"
+    assert error < 0.05
   end
 
   test "create_coordinate_cluster" do
