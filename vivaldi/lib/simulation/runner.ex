@@ -61,7 +61,7 @@ defmodule Vivaldi.Simulation.Runner do
   def get_initial_x(n, radius) do
     0..(n-1)
     |> Enum.map(fn i ->
-      {i, [radius * :rand.uniform() - 0.5, radius * :rand.uniform() - 0.5]} 
+      {i, [0, 0]} 
     end)
     |> Enum.into(%{})
   end

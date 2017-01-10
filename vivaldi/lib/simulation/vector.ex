@@ -29,14 +29,33 @@ defmodule Vivaldi.Simulation.Vector do
     Enum.map(p1, fn a -> a * factor end)
   end
 
+  def zero(dimension) do
+    Enum.map(1..dimension, fn _ -> 0 end)
+  end
+
+  def rand(dimension) do
+    Enum.map(1..dimension, fn _ -> :rand.uniform - 0.5 end)
+  end
+
+  @doc """
+  According to the paper:
+  > Because all nodes start at the same location, Vivaldi must separate them somehow.
+  > Vivaldi does this by defining u(0) to be a unit-length vector in a randomly chosen direction
+  When p1 and p2 are non-zero vectors, then the conventional definition of a unit vector is used.
+  """
   def unit_vector_at(p1, p2) do
-    # Return zero vector if p1 == p2
-    if p1 == p2 do
-      Enum.map(1..(Enum.count(p1)), fn _ -> 0 end)
+    dimension = Enum.count(p1)
+    if p1 == zero(dimension) and p2 == zero(dimension) do
+      u = rand(dimension)
+      scale(u, 1 / magnitude(u))
     else
-      d = diff(p1, p2)
-      mag = magnitude(d)
-      scale(d, 1 / mag)
+      if p1 == p2 do
+        Enum.map(1..dimension, fn _ -> 0 end)
+      else
+        d = diff(p1, p2)
+        mag = magnitude(d)
+        scale(d, 1 / mag)
+      end
     end
   end
 end
