@@ -16,7 +16,7 @@ defmodule Vivaldi.Simulation.SimpleVivaldi do
     l_i = Enum.at(latencies, i)
 
     # Choose a random co-ordinate to speak to
-    j = Enum.random(0..(n-1))
+    j = :rand.uniform(n) - 1
     l_ij = Enum.at(l_i, j)
     x_j = x[j]
 
