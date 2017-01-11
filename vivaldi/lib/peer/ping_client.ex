@@ -13,19 +13,31 @@ defmodule Vivaldi.Peer.PingClient do
 
   @ping_timeout 20000
 
-  def start_link(node_id, peer_ids) do
+  def start_link(node_id, session_id, peer_ids) do
     Logger.info "#{node_id} - Starting PingClient"
-    state = get_initial_state(peer_ids)
-    GenServer.start_link(__MODULE__, {node_id, peer_ids}, state)
+    GenServer.start_link(__MODULE__, {node_id, session_id, peer_ids})
   end
 
-  def handle_call(:begin_pings, _, {node_id, peer_ids}) do
-    spawn_link(fn -> begin_periodic_pinger(peer_ids) end)
+  def handle_call(:begin_pings, _, {node_id, session_id, peer_ids}) do
+    spawn_link(fn -> begin_periodic_pinger(node_id, session_id, peer_ids) end)
     {:reply, :ok, {node_id, peer_ids}}
   end
 
-  def begin_periodic_pinger(peer_ids) do
-    
+  # Continue here. How to stop this. Search what happens to child_process
+  # spawned through spawn_link when parent is killed through Process.exit :normal or otherwise. 
+  def begin_periodic_pinger(node_id, session_id, peer_ids) do
+    peer_ids 
+    |> Enum.shuffle()
+    |> Enum.map(fn peer_id ->
+      case ping_multi(node_id, session_id, peer_id) do
+        {:ok, {rtt, other_coordinate}} ->
+          x = 1
+        {:error, reason} ->
+          Logger.error "#{node_id} - ping_multi to #{peer_id} failed. #{reason}"
+      end
+      :timer.sleep(5000)
+    end)
+    begin_periodic_pinger(node_id, session_id, peer_ids)
   end
 
   def ping_multi(node_id, session_id, peer_id, times \\ 8) do
@@ -101,13 +113,6 @@ defmodule Vivaldi.Peer.PingClient do
   """
   def generate_start_ping_id do
     :rand.uniform() * 1000 |> round()
-  end
-
-  def get_initial_state(peer_ids) do
-    Stream.map(peer_ids, fn peer_id ->
-      {peer_id, []}
-    end)
-    |> Enum.into %{}
   end
 
   def calculate_rtt(start, finish) do

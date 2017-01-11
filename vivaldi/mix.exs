@@ -17,7 +17,7 @@ defmodule Vivaldi.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger],
+    [applications: [:logger, :timex],
      mod: {Vivaldi, []}]
   end
 
@@ -33,6 +33,7 @@ defmodule Vivaldi.Mixfile do
   defp deps do
     [{:ex_doc, "~> 0.14.5"},
      {:excoveralls, "~> 0.6.0"},
+     {:timex, "~> 3.0"},
     ]
   end
 end
