@@ -36,7 +36,7 @@ defmodule Vivaldi.Peer.PingClient do
     |> Stream.filter(fn {status, _} ->
       status == :pong
     end)
-    |> Enum.map(fn {_, response} -> response end)
+    |> Stream.map(fn {_, response} -> response end)
     |> Enum.into([])
     |> get_median_rtt_and_last_coordinate()
   end
@@ -70,7 +70,29 @@ defmodule Vivaldi.Peer.PingClient do
   end
 
   def get_median_rtt_and_last_coordinate(responses) do
-    
+    {:ok, {get_median_rtt(responses), get_last_coordinate(responses)}}
+  end
+
+  def get_median_rtt(responses) do
+    rtts = Enum.map(responses, fn {rtt, _} -> rtt end)
+    sorted_rtts = Enum.sort(rtts)
+    count = Enum.count(sorted_rtts)
+    case rem(count, 2) do
+      1 ->
+        median_index = round(count/2) - 1
+        Enum.at(sorted_rtts, median_index)
+      0 ->
+        middle = round(count/2)
+        {median_index_1, median_index_2} = {middle, middle - 1}
+        rtt_1 = Enum.at(sorted_rtts, median_index_1)
+        rtt_2 = Enum.at(sorted_rtts, median_index_2)
+        (rtt_1 + rtt_2) / 2
+    end
+  end
+
+  def get_last_coordinate(responses) do
+    {_rtt, coordinate} = List.last(responses)
+    coordinate
   end
 
   @doc """
@@ -89,10 +111,8 @@ defmodule Vivaldi.Peer.PingClient do
   end
 
   def calculate_rtt(start, finish) do
-    seconds = Duration.diff(finish, start, :seconds)
-    milliseconds = Duration.diff(finish, start, :milliseconds)
     microseconds = Duration.diff(finish, start, :microseconds)
-    seconds + milliseconds * 1.0e-3 + microseconds * 1.0e-6
+    microseconds * 1.0e-6
   end
 
 end
