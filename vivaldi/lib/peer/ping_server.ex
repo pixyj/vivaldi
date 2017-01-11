@@ -18,9 +18,12 @@ defmodule Vivaldi.Peer.PingServer do
 
   @doc """
   Client API
+
+  **TODO**: How to avoid try catch 
+  and use some version of receive... after instead, similar to http://bit.ly/2j1PuY7
   """
   def ping(client_node_id, client_session_id, server_node_id, ping_id, timeout) do
-    # http://bit.ly/2idCMnc
+    # As shown at http://bit.ly/2idCMnc
     try do
       GenServer.call(get_server_pid(server_node_id),
                     {:ping,
@@ -34,8 +37,7 @@ defmodule Vivaldi.Peer.PingServer do
   end
 
   # Implementation
-  def handle_call({:ping,
-                   [node_id: _, session_id: other_session_id, ping_id: ping_id]},
+  def handle_call({:ping, [node_id: _, session_id: other_session_id, ping_id: ping_id]},
                    _,
                   {my_node_id, my_session_id}) do
     if other_session_id == my_session_id do
