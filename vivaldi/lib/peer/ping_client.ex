@@ -3,6 +3,9 @@ defmodule Vivaldi.Peer.PingClient do
   Periodically Pings peers in a random order, and measures RTT on response. 
   When 8(configurable) responses are received from another peer `x_j`, the median RTT and latest coordinate of `x_j` is chosen, and sent to the Coordinate process 
   so that it can update our coordinate, `x_i`
+
+  This is a stateless process, i.e. individual pings and peer states are not maintained.
+  For example, if `x_j` crashes after 4 pings and doesn't respond, we just move on to the next peer. 
   """
   use GenServer
   use Timex
@@ -23,8 +26,10 @@ defmodule Vivaldi.Peer.PingClient do
     {:reply, :ok, {node_id, peer_ids}}
   end
 
-  # Continue here. How to stop this. Search what happens to child_process
-  # spawned through spawn_link when parent is killed through Process.exit :normal or otherwise. 
+  @doc """
+  Pings peer_ids in random order serially.
+  Should we introduce concurrent pinging? 
+  """
   def begin_periodic_pinger(node_id, session_id, peer_ids) do
     peer_ids 
     |> Enum.shuffle()
