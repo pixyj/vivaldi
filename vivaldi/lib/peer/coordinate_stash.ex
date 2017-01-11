@@ -1,4 +1,7 @@
 defmodule Vivaldi.Peer.CoordinateStash do
+  @moduledoc """
+  Save coordinate state in case of crash. 
+  """
   use GenServer
   
   # API
