@@ -1,7 +1,7 @@
 defmodule ConnectionsTest do
   use ExUnit.Case
 
-  alias Vivaldi.Peer.Connections
+  alias Vivaldi.Peer.{Config, Connections}
 
   setup_all do
     Node.start :"a@127.0.0.1"
@@ -20,7 +20,15 @@ defmodule ConnectionsTest do
       {:b, :"b@127.0.0.1"},
       {:c, :"c@127.0.0.1"}
     ]
-    Connections.start_link(node_id, peers)
+    node_config = [
+      node_id: node_id, 
+      session_id: 1,
+      node_name: :"a@127.0.0.1",
+      peers: peers
+    ]
+    config = Config.new(node_config)
+
+    Connections.start_link(config)
     {:ok, pid} = Connections.get_peer_ping_server(node_id, :b)
     assert pid != :undefined
     {:ok, pid} = Connections.get_peer_ping_server(node_id, :c)
@@ -40,7 +48,14 @@ defmodule ConnectionsTest do
   #   {:b, :"b@127.0.0.1"},
   #   {:c, :"c@127.0.0.1"}
   # ]
-  # Vivaldi.Peer.Connections.start_link(node_id, peers)
+  # node_config = [
+  #   node_id: node_id, 
+  #   session_id: 1,
+  #   node_name: :"a@127.0.0.1",
+  #   peers: peers
+  # ]
+  # config = Vivaldi.Peer.Config.new(node_config)
+  # Vivaldi.Peer.Connections.start_link(config)
   # Vivaldi.Peer.Connections.get_peer_ping_server(:a, :b)
 
 
