@@ -12,7 +12,7 @@ defmodule Vivaldi.Peer.PingClient do
 
   require Logger
 
-  alias Vivaldi.Peer.PingServer
+  alias Vivaldi.Peer.{Connections, PingServer}
 
   @ping_timeout 20000
 
@@ -36,6 +36,7 @@ defmodule Vivaldi.Peer.PingClient do
     |> Enum.map(fn peer_id ->
       case ping_multi(node_id, session_id, peer_id) do
         {:ok, {rtt, other_coordinate}} ->
+          # Placeholder. Update Coordinate here.
           x = 1
         {:error, reason} ->
           Logger.error "#{node_id} - ping_multi to #{peer_id} failed. #{reason}"
@@ -47,20 +48,26 @@ defmodule Vivaldi.Peer.PingClient do
 
   def ping_multi(node_id, session_id, peer_id, times \\ 8) do
     start_ping_id = generate_start_ping_id()
-    Stream.map(1..times, fn i ->
-      ping_once(node_id, session_id, peer_id, start_ping_id + i)
-    end)
-    |> Stream.filter(fn {status, _} ->
-      status == :pong
-    end)
-    |> Stream.map(fn {_, response} -> response end)
-    |> Enum.into([])
-    |> get_median_rtt_and_last_coordinate()
+    case Connections.get_peer_ping_server(node_id, peer_id) do
+      {:ok, server_pid} ->
+        Stream.map(1..times, fn i ->
+          ping_once(node_id, session_id, peer_id, server_pid, start_ping_id + i)
+        end)
+        |> Stream.filter(fn {status, _} ->
+          status == :pong
+        end)
+        |> Stream.map(fn {_, response} -> response end)
+        |> Enum.into([])
+        |> get_median_rtt_and_last_coordinate()
+
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 
-  def ping_once(node_id, session_id, peer_id, ping_id, timeout \\ @ping_timeout) do
+  def ping_once(node_id, session_id, peer_id, peer_server_pid, ping_id, timeout \\ @ping_timeout) do
     start = Duration.now()
-    response = PingServer.ping(node_id, session_id, peer_id, ping_id, timeout)
+    response = PingServer.ping(node_id, session_id, peer_id, peer_server_pid, ping_id, timeout)
     finish = Duration.now()
 
     case response do
