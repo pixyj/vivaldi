@@ -13,10 +13,9 @@ defmodule Vivaldi.Peer.Connections do
 
   # API
 
-  def start_link(node_id, peers) do
+  def start_link(config) do
     Logger.info "Starting Connections...."
-    state = get_initial_state(node_id, peers)
-    GenServer.start_link(__MODULE__, state, name: get_name(node_id))
+    GenServer.start_link(__MODULE__, config, name: get_name(config[:node_id]))
   end
 
   @doc """
@@ -25,18 +24,19 @@ defmodule Vivaldi.Peer.Connections do
   If connection fails, returns `:undefined`. 
   """
   def get_peer_ping_server(node_id, peer_id) do
-    GenServer.call(get_name(node_id),
-                   {:get_peer_ping_server, peer_id},
-                   @connection_setup_timeout)
+    GenServer.call(get_name(node_id), {:get_peer_ping_server, peer_id}, @connection_setup_timeout)
   end
 
   # Implementation
 
-  def handle_call({:get_peer_ping_server, peer_id}, _, {node_id, peer_names_by_id}) do
+  def handle_call({:get_peer_ping_server, peer_id}, _, config) do
+    node_id = config[:node_id]
+    peer_names_by_id = config[:peer_names_by_id]
     peer_name = peer_names_by_id[peer_id]
+
     if peer_name in Node.list do
       Logger.info("Peer #{peer_name} CONNECTED already!")
-      return_server_pid(peer_id, {node_id, peer_names_by_id})
+      return_server_pid(peer_id, config)
     else
       Logger.info("Peer #{peer_name} NOT connected. Attempting to connect...!")
       case Node.connect(peer_name) do
@@ -44,31 +44,22 @@ defmodule Vivaldi.Peer.Connections do
           Logger.info("CONNECTED to #{peer_name}!")
           # :global.whereis doesn't work without sleeping in my dev machine. 
           # TODO: How does this work under the hood?
-          :timer.sleep(500)
-          return_server_pid(peer_id, {node_id, peer_names_by_id})
+          :timer.sleep(config[:whereis_name_wait_interval])
+          return_server_pid(peer_id, config)
         false ->
           Logger.error("Node.connect failed: NOT Connected to #{peer_name}!")
-          {:reply, {:error, :pang}, {node_id, peer_names_by_id}}
+          {:reply, {:error, :pang}, config}
       end
     end
   end
 
-  def return_server_pid(peer_id, state) do
+  def return_server_pid(peer_id, config) do
     pid = PingServer.get_server_pid(peer_id)
     if pid == :undefined do
-      {:reply, {:error, :undefined}, state}
+      {:reply, {:error, :undefined}, config}
     else
-      {:reply, {:ok, pid}, state}
+      {:reply, {:ok, pid}, config}
     end
-  end
-
-  def get_initial_state(node_id, peers) do
-    peer_names_by_id = Enum.map(peers, fn {peer_id, peer_name} ->
-      {peer_id, peer_name}
-    end)
-    |> Enum.into(%{})
-
-    {node_id, peer_names_by_id}
   end
 
   def get_name(node_id) do
