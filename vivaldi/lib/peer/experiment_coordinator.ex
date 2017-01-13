@@ -16,6 +16,7 @@ defmodule Vivaldi.Peer.ExperimentCoordinator do
                       CoordinateStash, PingClient, PingServer}
 
   def start_link(config, state_agent, algo_sup) do
+    name = get_name(config[:node_id])
     GenServer.start_link(__MODULE__, [config, state_agent, algo_sup], name: name)
   end
 
@@ -55,7 +56,7 @@ defmodule Vivaldi.Peer.ExperimentCoordinator do
     |> Enum.filter(fn pid ->
       pid == nil
     end)
-    |> (fn nil_statuses -> Enum.count(nil_statuses) == 0)
+    |> (fn nil_statuses -> Enum.count(nil_statuses) == 0).()
 
     if ready? do
       {:reply, :ok, {:ready, state_agent, config}}
@@ -85,7 +86,7 @@ defmodule Vivaldi.Peer.ExperimentCoordinator do
       nil ->
         message = "#{node_id}: cannot execute command :begin_pings. PingClient isn't running"
         Logger.error message
-        {:reply, {:error, message}, {:pinging, state_agent, config}}
+        {:reply, {:error, message}, {:just_started, state_agent, config}}
       pid ->
         {:reply, :ok, {:pinging, state_agent, config}}
     end
@@ -125,11 +126,14 @@ defmodule Vivaldi.Peer.ExperimentCoordinator do
       {:ok, algo_sup} ->
         Process.exit pid, :kill
         log_command_executed(node_id, :force_reset, status)
+        # Should we check if processes are restarted here? 
         next_status = :just_started
         set_status(node_id, state_agent, status, next_status)
         {:reply, :ok, {next_status, state_agent, config}}
     end
   end
+
+  # TODO: Handle invalid commands
 
   def log_command_and_get_process(node_id, command, name, {status, state_agent, config}) do
     log_command_received(node_id, command, status)
