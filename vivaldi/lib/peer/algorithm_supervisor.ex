@@ -13,6 +13,9 @@ defmodule Vivaldi.Peer.AlgorithmSupervisor do
   end
 
   def init([config]) do
+
+    Process.register self, get_name(config[:node_id])
+
     children = [
       worker(Connections, [config]),
       worker(CoordinateStash, [config]),
@@ -23,6 +26,10 @@ defmodule Vivaldi.Peer.AlgorithmSupervisor do
     ]
     
     supervise(children, strategy: :one_for_one)
+  end
+
+  def get_name(node_id) do
+    :"#{node_id}-algorithm-supervisor"
   end
 
 end
