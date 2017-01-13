@@ -1,24 +1,46 @@
 defmodule CoordinateStashTest do
   use ExUnit.Case
 
-  alias Vivaldi.Peer.CoordinateStash
+  alias Vivaldi.Peer.{Config, CoordinateStash}
 
   test "Test get and set" do
-    one = %{vector: [2, 3], height: 1.0e-6}
-    two = %{vector: [3, 2], height: 10.0e-6}
-    node_id = 1
-    node_id_2 = 2
-    CoordinateStash.start_link(node_id, one)
-    CoordinateStash.start_link(node_id_2, two)
 
-    assert CoordinateStash.get_coordinate(node_id) == one
-    assert CoordinateStash.get_coordinate(node_id_2) == two
+    conf_one = [
+      node_id: :a,
+      node_name: :"a@127.0.0.1",
+      session_id: 1,
+      peers: [],
+      vivaldi_ce: 0.5
+    ]
 
-    CoordinateStash.set_coordinate(node_id, two)
-    CoordinateStash.set_coordinate(node_id_2, one)
+    conf_two = [
+      node_id: :b,
+      node_name: :"b@127.0.0.1",
+      session_id: 1,
+      peers: [],
+      vector_dimension: 3,
+      vivaldi_ce: 0.5
+    ]
+    conf_one = Config.new(conf_one)
+    conf_two = Config.new(conf_two)
 
-    assert CoordinateStash.get_coordinate(node_id) == two
-    assert CoordinateStash.get_coordinate(node_id_2) == one
+    zero_one = %{vector: [0, 0], height: 10.0e-6}
+    zero_two = %{vector: [0, 0, 0], height: 10.0e-6}
+
+    CoordinateStash.start_link(conf_one)
+    CoordinateStash.start_link(conf_two)
+
+    assert CoordinateStash.get_coordinate(:a) == zero_one
+    assert CoordinateStash.get_coordinate(:b) == zero_two
+
+    one = %{vector: [1, 2], height: 100.0e-6}
+    two = %{vector: [3, 2, 1], height: 100.0e-6}
+
+    CoordinateStash.set_coordinate(:a, one)
+    CoordinateStash.set_coordinate(:b, two)
+
+    assert CoordinateStash.get_coordinate(:a) == one
+    assert CoordinateStash.get_coordinate(:b) == two
 
   end
 

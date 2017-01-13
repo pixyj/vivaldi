@@ -3,7 +3,8 @@ defmodule Vivaldi.Peer.Config do
   require Logger
 
   def defaults do
-    [ height_min:                10.0e-6,
+    [ vector_dimension:           2,
+      height_min:                10.0e-6,
       vivaldi_cc:                 0.25,
       vivaldi_ce:                 0.25,
       vivaldi_error_max:          1.5,
