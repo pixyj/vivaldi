@@ -97,18 +97,23 @@ defmodule Vivaldi.Peer.ExperimentCoordinator do
     case log_command_and_get_process(node_id, :stop_pings, name, {:pinging, state_agent, config}) do
       {:error, response} ->
         response
-      {:ok, _} ->
-        PingClient.stop_pings(node_id)
+      {:ok, ping_client} ->
+        Process.exit ping_client, :kill
         log_command_executed(node_id, :stop_pings, status)
-
-        next_status = :ready
-        set_status(node_id, state_agent, status, next_status)
-        {:reply, :ok, {next_status, state_agent, config}}
+        :timer.sleep(100)
+        # Hopefully, ping_client is restarted by its supervisor by now
+        case Process.whereis(name) do
+          nil ->
+            Logger.error "#{node_id} -> ping_client has not restarted yet..."
+            next_status = :just_started
+            set_status(node_id, state_agent, status, next_status)
+            {:reply, {:error, :restart_failed}, {next_status, state_agent, config}}
+          _ ->
+            next_status = :ready
+            set_status(node_id, state_agent, status, next_status)
+            {:reply, :ok, {next_status, state_agent, config}}
+        end
     end
-  end
-
-  def handle_call(:reset, _, {:stopped, state_agent, config}) do
-    
   end
 
   def handle_call(:force_reset, _, {status, state_agent, config}) do
