@@ -5,6 +5,8 @@ defmodule Vivaldi.Peer.Coordinate do
   Ported from [hashicorp/serf](https://github.com/hashicorp/serf/tree/master/coordinate)
   """
 
+  use GenServer
+  
   alias Vivaldi.Peer.{CoordinateStash, CoordinateLogger}
   alias Vivaldi.Simulation.Vector
 
@@ -15,13 +17,14 @@ defmodule Vivaldi.Peer.Coordinate do
   @vivaldi_error_max 1.5
   @zero_threshold 1.0e-6
 
-  def start_link(node_id, session_id) do
+  def start_link(config) do
+    {node_id, session_id} = {config[:node_id], config[:session_id]}
     coordinate = CoordinateStash.get_coordinate(node_id)
     GenServer.start_link(__MODULE__, {node_id, session_id, coordinate}, name: get_name(node_id))
   end
 
   def update_coordinate(my_node_id, other_node_id, other_coordinate, rtt) do
-    GenServer.handle_call(get_name(my_node_id),
+    GenServer.call(get_name(my_node_id),
                           {:update_coordinate, my_node_id, other_node_id,
                            other_coordinate, rtt})
   end
@@ -30,8 +33,8 @@ defmodule Vivaldi.Peer.Coordinate do
                   _from, {_my_node_id, session_id, my_coordinate}) do
     
     my_new_coordinate = vivaldi(my_node_id, other_node_id, my_coordinate, other_coordinate, rtt)
-    CoordinateLogger.log(my_node_id, other_node_id, other_coordinate,
-                         rtt, my_coordinate, my_new_coordinate)
+    CoordinateLogger.log(my_node_id, {my_node_id, other_node_id, other_coordinate,
+                         rtt, my_coordinate, my_new_coordinate})
     {:reply, :ok, {my_node_id, session_id, my_new_coordinate}}
   end
 
@@ -43,12 +46,12 @@ defmodule Vivaldi.Peer.Coordinate do
     :"#{node_id}-coordinate"
   end
 
-  def new(dimension \\ 2) do
-    %{vector: [0, 0], height: 2}
+  def new(dimension, height) do
+    %{vector: Vector.zero(dimension), height: height}
   end
 
   def vivaldi(my_node_id, other_node_id, my_coordinate, other_coordinate, rtt) do
-
+    my_coordinate
   end
 
   def distance(%{vector: a_vec, height: a_height}, %{vector: b_vec, height: b_height}) do
