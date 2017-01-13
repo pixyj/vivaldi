@@ -30,14 +30,38 @@ defmodule Vivaldi.Peer.PingClient do
     GenServer.call(get_name(node_id), :begin_pings)
   end
 
+  # Implementation
+
   def handle_call(:begin_pings, _, config) do
     node_id = config[:node_id]
-    Logger.info "#{node_id} - starting. Starting periodic_pinger..."
-    spawn_link(fn -> begin_periodic_pinger(config) end)
+    name = get_periodic_pinger_name(node_id)
+    case Process.whereis(name) do
+      nil ->
+        spawn_periodic_pinger(node_id)
+      _ ->
+        Logger.info "#{node_id} - ignoring :begin_pings. Already started..."
+    end
     {:reply, :ok, config}
   end
 
-  # Implementation
+  def handle_info({:EXIT, pid, reason}, config) do
+    Logger.warn "#{node_id} - periodic_pinger EXITED"
+    node_id = config[:node_id]
+    spawn_periodic_pinger(node_id)
+    {:noreply, config}
+  end
+
+  def get_periodic_pinger_name(node_id) do
+    :"#{node_id}-periodic_pinger"
+  end
+
+  defp spawn_periodic_pinger(node_id) do
+    Process.flag :trap_exit, true
+    pid = spawn_link(fn -> begin_periodic_pinger(config) end)
+    Process.register pid, name
+    Logger.info "#{node_id} - Spawned periodic_pinger..."
+    pid
+  end
 
   @doc """
   Pings peer_ids in random order serially.
