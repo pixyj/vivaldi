@@ -43,7 +43,7 @@ defmodule Vivaldi.Peer.ExperimentCoordinator do
       PingServer.get_name(node_id)
     ]
 
-    ready? = |> Enum.map(names, fn name -> 
+    ready? = Enum.map(names, fn name -> 
       case Process.whereis(name) do
         nil ->
           Logger.warn "#{node_id} #{name} isn't running. We are not ready yet..."
