@@ -13,6 +13,7 @@ defmodule Vivaldi.Peer.Config do
       ping_repeat:                8,
       ping_gap_interval:          5_000,
       whereis_name_wait_interval: 500,
+      local_mode?:                false,
     ]
   end
 

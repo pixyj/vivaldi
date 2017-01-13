@@ -31,6 +31,15 @@ defmodule Vivaldi.Peer.Connections do
   # Implementation
 
   def handle_call({:get_peer_ping_server, peer_id}, _, config) do
+    case config[:local_mode?] do
+      true ->
+        return_server_pid(peer_id, config)
+      false ->
+        get_remote_server_pid(peer_id, config)
+    end
+  end
+
+  def get_remote_server_pid(peer_id, config) do
     node_id = config[:node_id]
     peer_names_by_id = config[:peer_names_by_id]
     peer_name = peer_names_by_id[peer_id]
@@ -39,7 +48,7 @@ defmodule Vivaldi.Peer.Connections do
       Logger.info("#{node_id} - peer:#{peer_name} CONNECTED already!")
       return_server_pid(peer_id, config)
     else
-      Logger.info("#{node_id} - peer:#{peer_name} NOT connected. Attempting to connect...!")
+      Logger.info("#{node_id} - peer:#{peer_name} NOT connected. Attempting to connect...")
       case Node.connect(peer_name) do
         true ->
           Logger.info("#{node_id} - CONNECTED to #{peer_name}!")
@@ -48,6 +57,9 @@ defmodule Vivaldi.Peer.Connections do
           :timer.sleep(config[:whereis_name_wait_interval])
           return_server_pid(peer_id, config)
         false ->
+          Logger.error("#{node_id} - Node.connect failed: NOT Connected to #{peer_name}!")
+          {:reply, {:error, :pang}, config}
+        _ ->
           Logger.error("#{node_id} - Node.connect failed: NOT Connected to #{peer_name}!")
           {:reply, {:error, :pang}, config}
       end
