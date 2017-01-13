@@ -14,10 +14,20 @@ defmodule Vivaldi.Peer.PingClient do
 
   alias Vivaldi.Peer.{Connections, PingServer}
 
+  # Public API
+
   def start_link(config) do
     node_id = config[:node_id]
     Logger.info "#{node_id} - starting PingClient..."
-    GenServer.start_link(__MODULE__, config)
+    GenServer.start_link(__MODULE__, config, name: get_name(node_id))
+  end
+
+  def get_name(node_id) do
+    :"#{node_id}-ping-client"
+  end
+
+  def begin_pings(node_id) do
+    GenServer.call(get_name(node_id), :begin_pings)
   end
 
   def handle_call(:begin_pings, _, config) do
@@ -26,6 +36,8 @@ defmodule Vivaldi.Peer.PingClient do
     spawn_link(fn -> begin_periodic_pinger(config) end)
     {:reply, :ok, config}
   end
+
+  # Implementation
 
   @doc """
   Pings peer_ids in random order serially.
@@ -44,7 +56,7 @@ defmodule Vivaldi.Peer.PingClient do
         {:error, reason} ->
           Logger.error "#{node_id} - ping_multi to #{peer_id} failed. #{reason}"
       end
-      config[:ping_gap_interval]
+      :timer.sleep(config[:ping_gap_interval])
     end)
     begin_periodic_pinger(config)
   end
