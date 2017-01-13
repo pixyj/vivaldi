@@ -9,7 +9,8 @@ defmodule Vivaldi.Peer.PingServer do
 
   alias Vivaldi.Peer.CoordinateStash
 
-  def start_link(node_id, session_id) do
+  def start_link(config) do
+    {node_id, session_id} = {config[:node_id], config[:session_id]}
     {:ok, pid} = GenServer.start_link(__MODULE__, {node_id, session_id})
     name = get_name(node_id)
     :global.register_name(name, pid)

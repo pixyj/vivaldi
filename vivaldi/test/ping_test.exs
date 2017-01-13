@@ -18,6 +18,20 @@ defmodule PingTest do
     Config.new(conf)
   end
 
+  def server_config do
+    peers = [
+      {:a, :"d@127.0.0.1"}
+    ]
+    conf = [
+      node_id: :d,
+      node_name: :"d@127.0.0.1",
+      session_id: 1,
+      peers: peers,
+      vivaldi_ce: 0.5
+    ]
+    Config.new(conf)
+  end
+
   setup_all do
     # Simulate both client and server on same node.
     Node.start :"d@127.0.0.1"
@@ -29,8 +43,9 @@ defmodule PingTest do
 
     server_coordinate = %{vector: [2, 3], height: 1.0e-6}
     Connections.start_link(config)
-    CoordinateStash.start_link(server_node_id, server_coordinate)
-    PingServer.start_link(server_node_id, config[:session_id])
+    CoordinateStash.start_link(server_config())
+    CoordinateStash.set_coordinate(server_node_id, server_coordinate)
+    PingServer.start_link(server_config())
     :ok
   end
 
