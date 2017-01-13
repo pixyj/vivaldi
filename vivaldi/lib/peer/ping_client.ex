@@ -14,44 +14,47 @@ defmodule Vivaldi.Peer.PingClient do
 
   alias Vivaldi.Peer.{Connections, PingServer}
 
-  @ping_timeout 20000
-
-  def start_link(node_id, session_id, peer_ids) do
+  def start_link(config) do
+    node_id = config[:node_id]
     Logger.info "#{node_id} - Starting PingClient"
-    GenServer.start_link(__MODULE__, {node_id, session_id, peer_ids})
+    GenServer.start_link(__MODULE__, config)
   end
 
-  def handle_call(:begin_pings, _, {node_id, session_id, peer_ids}) do
-    spawn_link(fn -> begin_periodic_pinger(node_id, session_id, peer_ids) end)
-    {:reply, :ok, {node_id, peer_ids}}
+  def handle_call(:begin_pings, _, config) do
+    
+    spawn_link(fn -> begin_periodic_pinger(config) end)
+    {:reply, :ok, config}
   end
 
   @doc """
   Pings peer_ids in random order serially.
   Should we introduce concurrent pinging? 
   """
-  def begin_periodic_pinger(node_id, session_id, peer_ids) do
-    peer_ids 
+  def begin_periodic_pinger(config) do
+    node_id = config[:node_id]
+
+    config[:peer_ids]
     |> Enum.shuffle()
     |> Enum.map(fn peer_id ->
-      case ping_multi(node_id, session_id, peer_id) do
+      case ping_multi(config, peer_id) do
         {:ok, {rtt, other_coordinate}} ->
           # Placeholder. Update Coordinate here.
           x = 1
         {:error, reason} ->
           Logger.error "#{node_id} - ping_multi to #{peer_id} failed. #{reason}"
       end
-      :timer.sleep(5000)
+      config[:ping_gap_interval]
     end)
-    begin_periodic_pinger(node_id, session_id, peer_ids)
+    begin_periodic_pinger(config)
   end
 
-  def ping_multi(node_id, session_id, peer_id, times \\ 8) do
+  def ping_multi(config, peer_id) do
+    {node_id, times} = {config[:node_id], config[:ping_repeat]}
     start_ping_id = generate_start_ping_id()
     case Connections.get_peer_ping_server(node_id, peer_id) do
       {:ok, server_pid} ->
         Stream.map(1..times, fn i ->
-          ping_once(node_id, session_id, peer_id, server_pid, start_ping_id + i)
+          ping_once(config, peer_id, server_pid, start_ping_id + i)
         end)
         |> Stream.filter(fn {status, _} ->
           status == :pong
@@ -65,7 +68,8 @@ defmodule Vivaldi.Peer.PingClient do
     end
   end
 
-  def ping_once(node_id, session_id, peer_id, peer_server_pid, ping_id, timeout \\ @ping_timeout) do
+  def ping_once(config, peer_id, peer_server_pid, ping_id) do
+    {node_id, session_id, timeout} = {config[:node_id], config[:session_id], config[:ping_timeout]}
     start = Duration.now()
     response = PingServer.ping(node_id, session_id, peer_id, peer_server_pid, ping_id, timeout)
     finish = Duration.now()

@@ -2,8 +2,21 @@ defmodule PingTest do
   use ExUnit.Case
   use Timex
 
-  alias Vivaldi.Peer.{CoordinateStash, Connections, PingClient, PingServer}
+  alias Vivaldi.Peer.{CoordinateStash, Config, Connections, PingClient, PingServer}
 
+  def get_config do
+    peers = [
+      {:d, :"d@127.0.0.1"}
+    ]
+    conf = [
+      node_id: :a,
+      node_name: :"d@127.0.0.1",
+      session_id: 1,
+      peers: peers,
+      vivaldi_ce: 0.5
+    ]
+    Config.new(conf)
+  end
 
   setup_all do
     # Simulate both client and server on same node.
@@ -11,16 +24,13 @@ defmodule PingTest do
     Node.set_cookie :"ping_test"
     client_node_id = :a
     server_node_id = :d
-    peers = [
-      {:d, :"d@127.0.0.1"}
-    ]
 
-    session_id = 1
+    config = get_config()
 
     server_coordinate = %{vector: [2, 3], height: 1.0e-6}
-    Connections.start_link(client_node_id, peers)
+    Connections.start_link(config)
     CoordinateStash.start_link(server_node_id, server_coordinate)
-    PingServer.start_link(server_node_id, session_id)
+    PingServer.start_link(server_node_id, config[:session_id])
     :ok
   end
 
@@ -30,13 +40,15 @@ defmodule PingTest do
     session_id = 1
     ping_id = 1
     server_coordinate = %{vector: [2, 3], height: 1.0e-6}
+    config = get_config()
     {:ok, server_pid} = Connections.get_peer_ping_server(client_node_id, server_node_id)
     # Happy case
-    {:pong, {_rtt, response_coordinate}} = PingClient.ping_once(client_node_id, session_id, server_node_id, server_pid, ping_id)
+    {:pong, {_rtt, response_coordinate}} = PingClient.ping_once(config, server_node_id, server_pid, ping_id)
     assert response_coordinate == server_coordinate
 
     # Timeout
-    {:error, _} = PingClient.ping_once(client_node_id, session_id, server_node_id, server_pid, ping_id, 0)
+    config = Keyword.merge(config, [ping_timeout: 0])
+    {:error, _} = PingClient.ping_once(config, server_node_id, server_pid, ping_id)
 
     # session_id mismatch
     {:pang, _} = PingServer.ping(client_node_id, 1000, server_node_id, server_pid, ping_id, 5000)
@@ -48,9 +60,11 @@ defmodule PingTest do
     server_node_id = :d
     session_id = 1
     ping_id = 1
-    
+
+    config = get_config()
+
     server_coordinate = %{vector: [2, 3], height: 1.0e-6}
-    {:ok, {_, result}} = PingClient.ping_multi(client_node_id, session_id, server_node_id)
+    {:ok, {_, result}} = PingClient.ping_multi(config, server_node_id)
     assert result == server_coordinate
   end
 
