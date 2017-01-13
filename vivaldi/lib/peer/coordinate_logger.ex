@@ -1,4 +1,4 @@
-defmodule Vivaldi.Peer.CoordinateStash do
+defmodule Vivaldi.Peer.CoordinateLogger do
   @moduledoc """
   All coordinate-update events are sent here. Events are logged to stdout.
   TODO: Also log events to a centralized log aggregator.
@@ -9,7 +9,8 @@ defmodule Vivaldi.Peer.CoordinateStash do
 
   # API
 
-  def start_link(node_id) do
+  def start_link(config) do
+    node_id = config[:node_id]
     GenServer.start_link(__MODULE__, {}, name: get_name(node_id))
   end
 
