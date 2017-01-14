@@ -29,7 +29,7 @@ defmodule Vivaldi.Peer.ExperimentCoordinator do
     name = get_name(node_id)
     config = case get_config(state_agent) do
       nil ->
-        "not configured"
+        "not configured yet"
       c ->
         c
     end
@@ -63,6 +63,7 @@ defmodule Vivaldi.Peer.ExperimentCoordinator do
   end
 
   def handle_call(:get_ready, _, {:just_started, state_agent, node_id}) do
+    log_command_received(node_id, :get_ready, :just_started)
     names = [
       Connections.get_name(node_id),
       Coordinate.get_name(node_id),
@@ -93,9 +94,12 @@ defmodule Vivaldi.Peer.ExperimentCoordinator do
     end)
     |> (fn nil_statuses -> Enum.count(nil_statuses) == 0 end).()
 
+    log_command_executed(node_id, :get_ready, :just_started)
     if ready? do
+      set_status(node_id, state_agent, :just_started, :get_ready)
       {:reply, :ok, {:ready, state_agent, node_id}}
     else
+      set_status(node_id, state_agent, :just_started, :error)
       {:reply, :error, {:just_started, state_agent, node_id}}
     end
   end
