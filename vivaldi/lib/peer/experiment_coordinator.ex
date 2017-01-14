@@ -24,9 +24,16 @@ defmodule Vivaldi.Peer.ExperimentCoordinator do
     :"#{node_id}-experiment-coordinator"
   end
 
-  def init(node_id, state_agent) do
+  def init([node_id, state_agent]) do
+
     name = get_name(node_id)
-    Logger.info "#{node_id} - starting #{name}..."
+    config = case get_config(state_agent) do
+      nil ->
+        "not configured"
+      c ->
+        c
+    end
+    Logger.info "#{node_id} - starting #{name}:  #{config}"
     status = Agent.get(state_agent, fn {status, _} -> status end)
     :yes = :global.register_name(name, self)
     {:ok, {status, state_agent, node_id}}
@@ -39,10 +46,11 @@ defmodule Vivaldi.Peer.ExperimentCoordinator do
     {:noreply, {:pinging, state_agent, node_id}}
   end
 
-  def handle_call({:configure, config}, _, {:not_started, state_agent, node_id}) do
+  def handle_call({:configure_and_run, config}, _, {:not_started, state_agent, node_id}) do
     log_command_received(node_id, :configure, :not_started)
     Agent.update(state_agent, fn {status, _} -> {status, config} end)
-
+    spawn_algo_sup(config)
+    Logger.info "Spawned AlgorithmSupervisor with config: #{inspect config}"
     log_command_executed(node_id, :configure, :not_started)
 
     next_status = :just_started
@@ -60,11 +68,18 @@ defmodule Vivaldi.Peer.ExperimentCoordinator do
       PingServer.get_name(node_id),
     ]
 
+    # Check if above processes are running by quering 
+    # `Process.whereis` and `:global.whereis_name`
     ready? = Enum.map(names, fn name -> 
       case Process.whereis(name) do
         nil ->
-          Logger.warn "#{node_id} #{name} isn't running. We are not ready yet..."
-          nil
+          case :global.whereis_name(name) do
+            nil ->
+              Logger.error "#{node_id} #{name} isn't running. We are not ready yet..."
+              nil
+            pid ->
+              pid
+          end
         pid ->
           pid
       end
@@ -109,8 +124,8 @@ defmodule Vivaldi.Peer.ExperimentCoordinator do
   # TODO: Handle invalid commands
 
   def spawn_algo_sup(config) do
-    Process.flag :exit, true
-    spawn_link(fn -> AlgorithmSupervisor.start_link(config) end)
+    Process.flag :trap_exit, true
+    AlgorithmSupervisor.start_link(config)
   end
 
   def log_command_and_get_process(node_id, command, name, {status, state_agent, node_id}) do
@@ -130,6 +145,10 @@ defmodule Vivaldi.Peer.ExperimentCoordinator do
       Agent.update(state_agent, fn {_, config} -> {next_status, config} end)
       Logger.info "#{node_id} - changed status #{status} -> #{next_status}"
     end
+  end
+
+  def get_config(state_agent) do
+    Agent.get(state_agent, fn {_, config} -> config end)
   end
 
   def log_command_received(node_id, command, status) do
