@@ -37,7 +37,7 @@ defmodule Vivaldi.Peer.PingClient do
     name = get_periodic_pinger_name(node_id)
     case Process.whereis(name) do
       nil ->
-        spawn_periodic_pinger(node_id)
+        spawn_periodic_pinger(config)
       _ ->
         Logger.info "#{node_id} - ignoring :begin_pings. Already started..."
     end
@@ -45,9 +45,9 @@ defmodule Vivaldi.Peer.PingClient do
   end
 
   def handle_info({:EXIT, pid, reason}, config) do
-    Logger.warn "#{node_id} - periodic_pinger EXITED"
     node_id = config[:node_id]
-    spawn_periodic_pinger(node_id)
+    Logger.warn "#{node_id} - periodic_pinger EXITED"
+    spawn_periodic_pinger(config)
     {:noreply, config}
   end
 
@@ -55,10 +55,15 @@ defmodule Vivaldi.Peer.PingClient do
     :"#{node_id}-periodic_pinger"
   end
 
-  defp spawn_periodic_pinger(node_id) do
+  defp spawn_periodic_pinger(config) do
+    node_id = config[:node_id]
+
     Process.flag :trap_exit, true
     pid = spawn_link(fn -> begin_periodic_pinger(config) end)
+
+    name = get_periodic_pinger_name(node_id)
     Process.register pid, name
+    
     Logger.info "#{node_id} - Spawned periodic_pinger..."
     pid
   end
