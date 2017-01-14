@@ -20,7 +20,13 @@ defmodule ControllerTest do
       assert config[:node_name] == peer_name
       assert config[:session_id] == 1
       assert config[:zero_threshold] == 1.0e-6
+      peers = config[:peers]
+      assert Enum.count(peers) == 2
+      Enum.map(peers, fn {other_id, _} ->
+        assert other_id != peer_id
+      end)
     end)
+
   end
 
   test "connect" do
@@ -34,9 +40,7 @@ defmodule ControllerTest do
       {:c, :"a@127.0.0.1"},
     ]
 
-
     #Happy case
-    configs = Controller.generate_peer_configs(peers, [session_id: 1])
     assert Controller.connect(peers) == true
 
     # Error case: Assign random name to :b
@@ -48,6 +52,4 @@ defmodule ControllerTest do
     assert Controller.connect(peers) == false
   end
 
-
-  
 end
