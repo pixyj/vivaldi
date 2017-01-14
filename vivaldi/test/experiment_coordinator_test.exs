@@ -32,10 +32,16 @@ defmodule ExperimentCoordinatorTest do
 
     :ok = GenServer.call(name, {:configure_and_run, get_config()})
     :timer.sleep(30)
+    {:ok, :just_started} = GenServer.call(name, :get_status)
+
     :ok = GenServer.call(name, :get_ready)
     :timer.sleep(30)
+    {:ok, :ready} = GenServer.call(name, :get_status)
+
+
     GenServer.call(name, :begin_pings)
     :timer.sleep(1000)
+    {:ok, :pinging} = GenServer.call(name, :get_status)
   end
 
 end

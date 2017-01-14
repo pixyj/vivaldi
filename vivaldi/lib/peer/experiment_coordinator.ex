@@ -46,6 +46,10 @@ defmodule Vivaldi.Peer.ExperimentCoordinator do
     {:noreply, {:pinging, state_agent, node_id}}
   end
 
+  def handle_call(:get_status, _, {status, state_agent, node_id}) do
+    {:reply, {:ok, status}, {status, state_agent, node_id}}
+  end
+
   def handle_call({:configure_and_run, config}, _, {:not_started, state_agent, node_id}) do
     log_command_received(node_id, :configure, :not_started)
     Agent.update(state_agent, fn {status, _} -> {status, config} end)
