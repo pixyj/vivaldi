@@ -11,11 +11,7 @@ defmodule Vivaldi.Peer.PingServer do
 
   def start_link(config) do
     {node_id, session_id} = {config[:node_id], config[:session_id]}
-    Logger.info "#{node_id} - starting PingServer..."
-    {:ok, pid} = GenServer.start_link(__MODULE__, {node_id, session_id})
-    name = get_name(node_id)
-    :global.register_name(name, pid)
-    {:ok, pid}
+    GenServer.start_link(__MODULE__, [{node_id, session_id}])
   end
 
   @doc """
@@ -39,6 +35,15 @@ defmodule Vivaldi.Peer.PingServer do
   end
 
   # Implementation
+
+  def init([{node_id, session_id}]) do
+    Logger.info "#{node_id} - starting PingServer... #{node_id} - #{session_id}"
+    name = get_name(node_id)
+    :global.register_name(name, self)
+    {:ok, {node_id, session_id}}
+  end
+
+
   def handle_call({:ping, [node_id: other_node_id, session_id: other_session_id, ping_id: ping_id]},
                    _,
                   {my_node_id, my_session_id}) do
