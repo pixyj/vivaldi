@@ -46,13 +46,14 @@ This module exists purely to accelerate debugging
 
   def send_command(peers_and_commands) do
     peers_and_commands
-    |> Enum.map(fn {peer_id, _, command} ->
+    |> Enum.map(fn {{peer_id, _}, command} ->
       name = ExperimentCoordinator.get_name(peer_id)
       case :global.whereis_name(name) do
         :undefined ->
           Logger.error "controller - #{name} not found through :global.whereis_name"
           :error
         pid ->
+          Logger.info "controller - sending command #{inspect command}"
           result = GenServer.call(pid, command)
           {peer_id, result}
       end
