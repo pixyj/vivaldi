@@ -33,7 +33,7 @@ defmodule AlgorithmSupervisorTest do
       PingClient.begin_pings(config[:node_id])
     end)
 
-    :timer.sleep(2000)
+    :timer.sleep(200)
 
   end
 
