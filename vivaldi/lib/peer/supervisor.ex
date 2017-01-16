@@ -13,7 +13,7 @@ defmodule Vivaldi.Peer.Supervisor do
   end
 
   def init([node_id]) do
-    state_agent = Agent.start_link fn -> {:not_started, nil} end, []
+    {:ok, state_agent} = Agent.start_link fn -> {:not_started, nil} end, []
     children = [
       worker(ExperimentCoordinator, [node_id, state_agent]),
     ]
