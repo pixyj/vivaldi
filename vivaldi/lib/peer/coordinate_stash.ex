@@ -9,7 +9,7 @@ defmodule Vivaldi.Peer.CoordinateStash do
   # API
   def start_link(config) do
     {node_id, dimension, height} = {config[:node_id], config[:vector_dimension], config[:height_min]}
-    initial_coordinate = Coordinate.new(dimension, height)
+    initial_coordinate = Coordinate.new(dimension, height, config[:vivaldi_error_max])
     GenServer.start_link(__MODULE__, initial_coordinate, name: get_name(node_id))
   end
 
