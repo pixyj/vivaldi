@@ -10,12 +10,6 @@ defmodule Vivaldi.Peer.Coordinate do
   alias Vivaldi.Peer.{CoordinateStash, CoordinateLogger}
   alias Vivaldi.Simulation.Vector
 
-  # Vivaldi protocol tuning parameters. 
-  @height_min 10.0e-6
-  @vivaldi_ce 0.25
-  @vivaldi_cc 0.25
-  @vivaldi_error_max 1.5
-  @zero_threshold 1.0e-6
 
   def start_link(config) do
     {node_id, session_id} = {config[:node_id], config[:session_id]}
