@@ -53,7 +53,7 @@ defmodule Vivaldi.Peer.Coordinate do
     total_error = max(total_error, config[:zero_threshold])
     weight = x_i[:error] / total_error
 
-    error_next = config[:vivaldi_ce] * weight * wrongness + x_i[:error] * (1.0 - config[:vivali_ce] * weight)
+    error_next = config[:vivaldi_ce] * weight * wrongness + x_i[:error] * (1.0 - config[:vivaldi_ce] * weight)
     error_next = max(error_next, config[:vivaldi_error_max])
 
     delta = config[:vivaldi_cc] * weight
@@ -65,7 +65,7 @@ defmodule Vivaldi.Peer.Coordinate do
 
   def apply_force(config, x_i, x_j, force) do
     unit = Vector.unit_vector_at(x_i[:vector], x_j[:vector])
-    mag = Vector.diff(x_i, x_j) |> Vector.magnitude()
+    mag = Vector.diff(x_i[:vector], x_j[:vector]) |> Vector.magnitude()
 
     force_vec = Vector.scale(unit, force)
     vec_next = Vector.add(x_i[:vector], force_vec)
@@ -81,7 +81,7 @@ defmodule Vivaldi.Peer.Coordinate do
     {vec_next, height_next}
   end
 
-  def distance(%{vector: a_vec, height: a_height}, %{vector: b_vec, height: b_height}) do
+  def distance(%{vector: a_vec, height: a_height, error: _}, %{vector: b_vec, height: b_height, error: _}) do
     vector_dist = Vector.distance(a_vec, b_vec)
     height_dist = a_height + b_height
     vector_dist + height_dist
