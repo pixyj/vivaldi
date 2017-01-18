@@ -24,8 +24,8 @@ defmodule CoordinateStashTest do
     conf_one = Config.new(conf_one)
     conf_two = Config.new(conf_two)
 
-    zero_one = %{vector: [0, 0], height: 10.0e-6}
-    zero_two = %{vector: [0, 0, 0], height: 10.0e-6}
+    zero_one = %{vector: [0, 0], height: 10.0e-6, error: 1.5}
+    zero_two = %{vector: [0, 0, 0], height: 10.0e-6, error: 1.5}
 
     CoordinateStash.start_link(conf_one)
     CoordinateStash.start_link(conf_two)
