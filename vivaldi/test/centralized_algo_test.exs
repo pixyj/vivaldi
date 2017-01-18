@@ -6,7 +6,6 @@ defmodule CentralizedAlgoTest do
 
   test "test compute_coordinates" do
     {_, _, error} = CA.run(10, 4)
-    IO.puts "******** CA error***************** #{error}"
     assert error < 0.05
   end
 

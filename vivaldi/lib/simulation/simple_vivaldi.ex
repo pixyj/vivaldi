@@ -20,8 +20,10 @@ defmodule Vivaldi.Simulation.SimpleVivaldi do
     l_ij = Enum.at(l_i, j)
     x_j = x[j]
 
+    x_i_next = update_x_i(x_i, x_j, l_ij, t)
+    
     # Return updated x_i
-    update_x_i(x_i, x_j, l_ij, t)
+    x_i_next
   end
 
   @doc """
