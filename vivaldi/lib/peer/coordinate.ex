@@ -12,7 +12,7 @@ defmodule Vivaldi.Peer.Coordinate do
 
 
   def start_link(config) do
-    node_id = {config[:node_id], config[:session_id]}
+    node_id = config[:node_id]
     coordinate = CoordinateStash.get_coordinate(node_id)
     GenServer.start_link(__MODULE__, {config, coordinate}, name: get_name(node_id))
   end
