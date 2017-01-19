@@ -20,7 +20,7 @@ defmodule Vivaldi.Peer.PingServer do
   **TODO**: How to avoid try catch 
   and use some version of receive... after instead, similar to http://bit.ly/2j1PuY7
   """
-  def ping(client_node_id, client_session_id, server_node_id, server_pid, ping_id, timeout) do
+  def ping(client_node_id, client_session_id, _server_node_id, server_pid, ping_id, timeout) do
     # As shown at http://bit.ly/2idCMnc
     try do
       GenServer.call(server_pid,
@@ -45,7 +45,7 @@ defmodule Vivaldi.Peer.PingServer do
 
   # TODO: Is this a bottleneck? 
   # We have one synchronous call to accept ping requests from all peers.
-  def handle_call({:ping, [node_id: other_node_id, session_id: other_session_id, ping_id: ping_id]},
+  def handle_call({:ping, [node_id: _other_node_id, session_id: other_session_id, ping_id: ping_id]},
                    _,
                   {my_node_id, my_session_id}) do
     if other_session_id == my_session_id do

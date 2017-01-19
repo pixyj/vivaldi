@@ -44,9 +44,9 @@ defmodule Vivaldi.Peer.PingClient do
     {:reply, :ok, config}
   end
 
-  def handle_info({:EXIT, pid, reason}, config) do
+  def handle_info({:EXIT, _pid, reason}, config) do
     node_id = config[:node_id]
-    Logger.warn "#{node_id} - periodic_pinger EXITED"
+    Logger.warn "#{node_id} - periodic_pinger exited. Reason: #{inspect reason}"
     spawn_periodic_pinger(config)
     {:noreply, config}
   end

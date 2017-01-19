@@ -25,7 +25,7 @@ defmodule AlgorithmSupervisorTest do
       Config.new(conf)
     end)
     |> Enum.map(fn config -> 
-      {:ok, pid} = AlgorithmSupervisor.start_link(config)
+      {:ok, _pid} = AlgorithmSupervisor.start_link(config)
       config
     end)
     |> Enum.map(fn config -> :timer.sleep(30); config end)

@@ -1,4 +1,4 @@
-defmodule VectorTest do
+defmodule CoordinateLoggerTest do
   use ExUnit.Case
   
   alias Vivaldi.Peer.{Config, CoordinateLogger}

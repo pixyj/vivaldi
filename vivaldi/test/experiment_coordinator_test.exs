@@ -26,7 +26,7 @@ defmodule ExperimentCoordinatorTest do
 
   test "actions" do
     {:ok, state_agent} = Agent.start_link fn -> {:not_started, nil} end, []
-    {:ok, exp} = ExperimentCoordinator.start_link(:a, state_agent)
+    {:ok, _exp} = ExperimentCoordinator.start_link(:a, state_agent)
 
     name = ExperimentCoordinator.get_name(:a)
 

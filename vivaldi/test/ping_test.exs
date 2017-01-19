@@ -38,7 +38,7 @@ defmodule PingTest do
     # Simulate both client and server on same node.
     Node.start :"d@127.0.0.1"
     Node.set_cookie :"ping_test"
-    client_node_id = :a
+    
     server_node_id = :d
 
     config = get_config()
@@ -54,7 +54,6 @@ defmodule PingTest do
   test "Ping Once" do
     client_node_id = :a
     server_node_id = :d
-    session_id = 1
     ping_id = 1
     server_coordinate = %{vector: [2, 3], height: 1.0e-6, error: 0.2}
     config = get_config()
@@ -73,10 +72,7 @@ defmodule PingTest do
   end
 
   test "Ping Multi" do
-    client_node_id = :a
     server_node_id = :d
-    session_id = 1
-    ping_id = 1
 
     config = get_config()
 
@@ -86,17 +82,12 @@ defmodule PingTest do
   end
   
   test "Periodic pinger" do
-    client_node_id = :a
-    server_node_id = :d
-    session_id = 1
-    ping_id = 1
-
     config = get_config()
 
     CoordinateStash.start_link(config)
     Coordinate.start_link(config)
 
-    pinger = spawn_link(fn -> PingClient.begin_periodic_pinger(config) end)
+    spawn_link(fn -> PingClient.begin_periodic_pinger(config) end)
 
     # Wait for ping<->pong to do its job
     :timer.sleep(1000)
