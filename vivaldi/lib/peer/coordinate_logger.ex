@@ -11,11 +11,11 @@ defmodule Vivaldi.Peer.CoordinateLogger do
 
   def start_link(config) do
     node_id = config[:node_id]
-    GenServer.start_link(__MODULE__, {}, name: get_name(node_id))
+    GenServer.start_link(__MODULE__, {config, nil}, name: get_name(node_id))
   end
 
   def log(node_id, event) do
-    GenServer.cast(get_name(node_id), event)
+    GenServer.cast(get_name(node_id), {:"coordinate-update-event", event})
   end
 
   # Implementation
@@ -24,11 +24,31 @@ defmodule Vivaldi.Peer.CoordinateLogger do
     :"#{node_id}-coordinate-logger"
   end
 
-  def handle_cast({:log}, _from,
-                  {my_node_id, other_node_id, other_coordinate, rtt,
-                   my_coordinate, my_new_coordinate}) do
+  def handle_cast({:"coordinate-update-event", event}, {config, logcentral_pid}) do
+    case get_logcentral_pid(logcentral_pid) do
+      nil ->
+        # TODO: Send pending messages when logcentral comes back up. 
+        Logger.error("FATAL error. logcentral pid not found. ")
+        {:noreply, {config, nil}}
 
-    {:noreply, {}}
+      new_logcentral_pid -> 
+        GenServer.cast(new_logcentral_pid, {:"coordinate-update-event", event})
+        {:noreply, {config, new_logcentral_pid}}
+    end
+  end
+
+  def get_logcentral_pid(previous_logcentral_pid) do
+    case previous_logcentral_pid do
+      nil ->
+        case :global.whereis_name(:logcentral) do
+          :undefined ->
+            nil
+          pid ->
+            pid
+        end
+      pid ->
+        pid
+    end
   end
 
 end

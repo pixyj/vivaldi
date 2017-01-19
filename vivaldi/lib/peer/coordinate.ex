@@ -36,8 +36,16 @@ defmodule Vivaldi.Peer.Coordinate do
     my_new_coordinate = vivaldi(config, my_coordinate, other_coordinate, rtt)
 
     unless config[:local_mode?] do
-      CoordinateLogger.log(my_node_id, {my_node_id, other_node_id, other_coordinate,
-                           rtt, my_coordinate, my_new_coordinate})
+      # Send coordinate-update event
+      event = %{
+        i: my_node_id,
+        j: other_node_id,
+        x_i: my_coordinate,
+        x_j: other_coordinate,
+        x_i_next: my_new_coordinate,
+        rtt: rtt
+      }
+      CoordinateLogger.log(my_node_id, event)
     end
     Logger.info "#{my_node_id} - coordinate changed from #{inspect my_coordinate} to #{inspect my_new_coordinate}"
     {:reply, :ok, {config, my_new_coordinate}}
