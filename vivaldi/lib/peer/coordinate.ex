@@ -6,6 +6,8 @@ defmodule Vivaldi.Peer.Coordinate do
   """
 
   use GenServer
+
+  require Logger
   
   alias Vivaldi.Peer.{CoordinateStash, CoordinateLogger}
   alias Vivaldi.Simulation.Vector
@@ -23,18 +25,26 @@ defmodule Vivaldi.Peer.Coordinate do
                            other_coordinate, rtt})
   end
 
+  # For testing purposes only... 
+  def handle_call(:get_coordinate, _from, {config, coordinate}) do
+    {:reply, coordinate, {config, coordinate}}
+  end
+
   def handle_call({:update_coordinate, my_node_id, other_node_id, other_coordinate, rtt},
                   _from, {config, my_coordinate}) do
     
     my_new_coordinate = vivaldi(config, my_coordinate, other_coordinate, rtt)
+
     unless config[:local_mode?] do
       CoordinateLogger.log(my_node_id, {my_node_id, other_node_id, other_coordinate,
                            rtt, my_coordinate, my_new_coordinate})
     end
+    Logger.info "#{my_node_id} - coordinate changed from #{inspect my_coordinate} to #{inspect my_new_coordinate}"
     {:reply, :ok, {config, my_new_coordinate}}
   end
 
-  def terminate(_reason, {node_id, _session_id, coordinate}) do
+  def terminate(_reason, {config, coordinate}) do
+    node_id = config[:node_id]
     CoordinateStash.set_coordinate(node_id, coordinate)
   end
 
