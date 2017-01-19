@@ -55,7 +55,7 @@ defmodule Vivaldi.Peer.PingServer do
                  node_id: my_node_id,
                  coordinate: coordinate
                 ]
-      Logger.info "#{my_node_id} - sending pong: #{ping_id} to #{other_node_id}"
+      # Logger.info "#{my_node_id} - sending pong: #{ping_id} to #{other_node_id}"
       {:reply, {:pong, payload}, {my_node_id, my_session_id}}
     else
       message = "#{my_node_id} - session_ids don't match. Received #{other_session_id}, my_session_id is #{my_session_id}"

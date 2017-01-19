@@ -47,7 +47,7 @@ defmodule Vivaldi.Peer.Coordinate do
       }
       CoordinateLogger.log(my_node_id, event)
     end
-    Logger.info "#{my_node_id} - coordinate changed from #{inspect my_coordinate} to #{inspect my_new_coordinate}"
+    # Logger.info "#{my_node_id} - coordinate changed from #{inspect my_coordinate} to #{inspect my_new_coordinate}"
     {:reply, :ok, {config, my_new_coordinate}}
   end
 

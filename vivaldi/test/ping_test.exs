@@ -84,8 +84,7 @@ defmodule PingTest do
     {:ok, {_, result}} = PingClient.ping_multi(config, server_node_id)
     assert result == server_coordinate
   end
-
-  @tag mustexec: true
+  
   test "Periodic pinger" do
     client_node_id = :a
     server_node_id = :d

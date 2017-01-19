@@ -8,7 +8,6 @@ defmodule ConnectionsTest do
     Node.set_cookie :"hide_and_seek"
     spawn fn -> :os.cmd :"elixir test/peer_b.exs" end
     spawn fn -> :os.cmd :"elixir test/peer_c.exs" end
-    IO.puts "Spawned peers!!!"
     :ok
   end
 
