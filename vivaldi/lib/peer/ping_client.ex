@@ -12,7 +12,7 @@ defmodule Vivaldi.Peer.PingClient do
 
   require Logger
 
-  alias Vivaldi.Peer.{Connections, PingServer}
+  alias Vivaldi.Peer.{Coordinate, Connections, PingServer}
 
   # Public API
 
@@ -80,8 +80,8 @@ defmodule Vivaldi.Peer.PingClient do
     |> Enum.map(fn peer_id ->
       case ping_multi(config, peer_id) do
         {:ok, {rtt, other_coordinate}} ->
-          # Placeholder. Update Coordinate here.
-          x = 1
+          Logger.info "#{node_id} -> ping_multi to #{peer_id } done!"
+          Coordinate.update_coordinate(node_id, peer_id, other_coordinate, rtt)
         {:error, reason} ->
           Logger.error "#{node_id} - ping_multi to #{peer_id} failed. #{reason}"
       end

@@ -43,7 +43,8 @@ defmodule Vivaldi.Peer.PingServer do
     {:ok, {node_id, session_id}}
   end
 
-
+  # TODO: Is this a bottleneck? 
+  # We have one synchronous call to accept ping requests from all peers.
   def handle_call({:ping, [node_id: other_node_id, session_id: other_session_id, ping_id: ping_id]},
                    _,
                   {my_node_id, my_session_id}) do

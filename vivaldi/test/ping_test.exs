@@ -2,7 +2,7 @@ defmodule PingTest do
   use ExUnit.Case
   use Timex
 
-  alias Vivaldi.Peer.{CoordinateStash, Config, Connections, PingClient, PingServer}
+  alias Vivaldi.Peer.{Coordinate, CoordinateStash, Config, Connections, PingClient, PingServer}
 
   def get_config do
     peers = [
@@ -13,7 +13,9 @@ defmodule PingTest do
       node_name: :"d@127.0.0.1",
       session_id: 1,
       peers: peers,
-      vivaldi_ce: 0.5
+      vivaldi_ce: 0.5,
+      ping_repeat: 2,
+      ping_gap_interval: 1
     ]
     Config.new(conf)
   end
@@ -41,7 +43,7 @@ defmodule PingTest do
 
     config = get_config()
 
-    server_coordinate = %{vector: [2, 3], height: 1.0e-6}
+    server_coordinate = %{vector: [2, 3], height: 1.0e-6, error: 0.2}
     Connections.start_link(config)
     CoordinateStash.start_link(server_config())
     CoordinateStash.set_coordinate(server_node_id, server_coordinate)
@@ -54,7 +56,7 @@ defmodule PingTest do
     server_node_id = :d
     session_id = 1
     ping_id = 1
-    server_coordinate = %{vector: [2, 3], height: 1.0e-6}
+    server_coordinate = %{vector: [2, 3], height: 1.0e-6, error: 0.2}
     config = get_config()
     {:ok, server_pid} = Connections.get_peer_ping_server(client_node_id, server_node_id)
     # Happy case
@@ -78,9 +80,33 @@ defmodule PingTest do
 
     config = get_config()
 
-    server_coordinate = %{vector: [2, 3], height: 1.0e-6}
+    server_coordinate = %{vector: [2, 3], height: 1.0e-6, error: 0.2}
     {:ok, {_, result}} = PingClient.ping_multi(config, server_node_id)
     assert result == server_coordinate
+  end
+
+  @tag mustexec: true
+  test "Periodic pinger" do
+    client_node_id = :a
+    server_node_id = :d
+    session_id = 1
+    ping_id = 1
+
+    config = get_config()
+
+    CoordinateStash.start_link(config)
+    Coordinate.start_link(config)
+
+    pinger = spawn_link(fn -> PingClient.begin_periodic_pinger(config) end)
+
+    # Wait for ping<->pong to do its job
+    :timer.sleep(1000)
+
+    # Check if coordinate is now updated.
+    # We don't care about the exact value of the new coordinate here 
+    # since we have separate tests for that.
+    c1 = GenServer.call(Coordinate.get_name(:a), :get_coordinate)
+    assert c1[:vec] != [0, 0]
   end
 
   test "get median rtt" do
