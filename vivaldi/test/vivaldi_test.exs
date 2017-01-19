@@ -45,7 +45,8 @@ defmodule VivaldiTest do
       node_name: :"d@127.0.0.1",
       session_id: 1,
       peers: peers,
-      vivaldi_ce: 0.5
+      vivaldi_ce: 0.5,
+      local_mode?: true,
     ]
     Config.new(conf)
   end
@@ -96,7 +97,6 @@ defmodule VivaldiTest do
     {x_i, x_j} = {coords_map[i], coords_map[j]}
     rtt = matrix |> Enum.at(i) |> Enum.at(j)
     x_i_next = Coordinate.vivaldi(config, x_i, x_j, rtt)
-    # IO.puts "x_i_next: #{inspect x_i_next}"
     Map.put coords_map, i, x_i_next
   end
 
