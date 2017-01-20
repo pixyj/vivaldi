@@ -58,7 +58,7 @@ defmodule Vivaldi.Simulation.Runner do
     Enum.sum(pairwise_errors) / (Enum.count(pairwise_errors) - n)
   end
 
-  def get_initial_x(n, radius) do
+  def get_initial_x(n, _radius) do
     0..(n-1)
     |> Enum.map(fn i ->
       {i, [0, 0]} 

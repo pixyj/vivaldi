@@ -15,7 +15,7 @@ This module exists purely to accelerate debugging
 
   def connect(peers) do
     peers
-    |> Enum.map(fn {peer_id, peer_name} ->
+    |> Enum.map(fn {_peer_id, peer_name} ->
       status = Node.connect(peer_name)
       if status != true do
         Logger.error "controller - Not connected to #{peer_name}"

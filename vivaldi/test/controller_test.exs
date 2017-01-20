@@ -70,7 +70,7 @@ defmodule ControllerTest do
     # Start peers. 
     Enum.map(peers, fn {peer_id, _} ->
       {:ok, state_agent} = Agent.start_link fn -> {:not_started, nil} end, []
-      {:ok, pid} = ExperimentCoordinator.start_link(peer_id, state_agent)
+      {:ok, _pid} = ExperimentCoordinator.start_link(peer_id, state_agent)
     end)
 
     Controller.get_status(peers, :not_started)
