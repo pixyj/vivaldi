@@ -14,6 +14,7 @@ defmodule Vivaldi.Peer.Config do
       ping_gap_interval:          5_000,
       whereis_name_wait_interval: 500,
       local_mode?:                false,
+      cookie:                     :hide_and_seek,
     ]
   end
 
