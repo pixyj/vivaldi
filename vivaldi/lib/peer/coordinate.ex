@@ -25,7 +25,6 @@ defmodule Vivaldi.Peer.Coordinate do
                            other_coordinate, rtt})
   end
 
-  # For testing purposes only... 
   def handle_call(:get_coordinate, _from, {config, coordinate}) do
     {:reply, coordinate, {config, coordinate}}
   end
@@ -34,6 +33,9 @@ defmodule Vivaldi.Peer.Coordinate do
                   _from, {config, my_coordinate}) do
     
     my_new_coordinate = vivaldi(config, my_coordinate, other_coordinate, rtt)
+
+    # Update CoordinateStash immediately so that PingServer can use it for its next response.
+    CoordinateStash.set_coordinate(my_node_id, my_new_coordinate)
 
     unless config[:local_mode?] do
       # Send coordinate-update event
@@ -47,7 +49,7 @@ defmodule Vivaldi.Peer.Coordinate do
       }
       CoordinateLogger.log(my_node_id, event)
     end
-    # Logger.info "#{my_node_id} - coordinate changed from #{inspect my_coordinate} to #{inspect my_new_coordinate}"
+    Logger.info "#{my_node_id} - coordinate changed from #{inspect my_coordinate} to #{inspect my_new_coordinate}"
     {:reply, :ok, {config, my_new_coordinate}}
   end
 
