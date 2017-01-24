@@ -29,8 +29,8 @@ defmodule ControllerTest do
 
   end
 
-  @tag dontexec: true
-  test "connect" do
+  @tag c2: true
+  test "connect and get_status" do
     Node.start :"a@127.0.0.1"
     # Without sleep, Node.connect doesn't work.
     :timer.sleep(100)
@@ -41,8 +41,15 @@ defmodule ControllerTest do
       {:c, :"a@127.0.0.1"},
     ]
 
+    # Start peers. 
+    Enum.map(peers, fn {peer_id, _} ->
+      {:ok, state_agent} = Agent.start_link fn -> {:not_started, nil} end, []
+      {:ok, _pid} = ExperimentCoordinator.start_link(peer_id, state_agent)
+    end)
+
     #Happy case
-    assert Controller.connect(peers) == true
+    assert Controller.connect(peers) == {:ok, peers}
+    assert Controller.verify_status(peers, :not_started) == {:ok, peers}
 
     # Error case: Assign random name to :b
     peers = [
@@ -50,7 +57,7 @@ defmodule ControllerTest do
       {:b, :"dd@127.0.0.1"},
       {:c, :"a@127.0.0.1"},
     ]
-    assert Controller.connect(peers) == false
+    {:error, _} = Controller.connect(peers)
   end
 
   test "commands" do

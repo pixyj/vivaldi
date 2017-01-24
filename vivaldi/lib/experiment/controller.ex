@@ -13,6 +13,81 @@ This module exists purely to accelerate debugging
 
   alias Vivaldi.Peer.{Config, ExperimentCoordinator}
 
+  @doc """
+  Run the following sequence of commands to kickoff the Vivaldi algorithm on each peer.
+  
+  0. Start `logcentral`
+  1. Connect to peers
+  2. Configure peers
+  3. Ensure peers are ready. 
+  4. Instruct peers to begin pinging each other
+  """
+  def run(peers) do
+    # TODO: This seems like a classic use case for railway-oriented programming. 
+    # http://fsharpforfunandprofit.com/rop/ Learn how to implement it.
+    # The problem is my individual steps are currently not composable...
+    # The below pipeline should just work for both happy channel and the error channel.
+
+    # peers
+    # |> connect()
+    # |> get_status(expected_status=:not_started)
+    # |> generate_peer_configs(base_config)
+    # |> send_command(:configure_and_run)
+    # |> get_status(expected_status=:just_started)
+    # |> send_command(:get_ready)
+    # |> get_status(expected_status=:ready)
+    # |> send_command(:begin_pings)
+    # Until then, here's a crude way to accomplish the same task: 
+
+
+    # Setup configuration
+
+
+    common_config = [session_id: 1, ping_gap_interval: 200]
+    configs = generate_peer_configs(peers, common_config)
+
+    get_status(peers, :not_started)
+    
+    # Run following commands
+    # configure_and_run |> get_ready |> begin_pings
+    Enum.zip(peers, configs)
+    |> Enum.map(fn {{peer_id, peer_name}, config} ->
+      command = {:configure_and_run, config}
+      {{peer_id, peer_name}, command}
+    end)
+    |> (fn peers_and_commands -> 
+      send_command(peers_and_commands)
+      get_status(peers, :just_started)
+      peers
+    end).()
+    |> (fn peers ->
+      peers
+      |> Enum.map(fn {peer_id, peer_name} ->
+        command = :get_ready
+        {{peer_id, peer_name}, command}
+      end)
+      |> (fn peers_and_commands ->
+        send_command(peers_and_commands)
+
+        get_status(peers, :ready)
+        peers
+      end).()
+    end).()
+    |> (fn peers ->
+      peers
+      |> Enum.map(fn {peer_id, peer_name} ->
+        command = :begin_pings
+        {{peer_id, peer_name}, command}
+      end)
+      |> (fn peers_and_commands ->
+        send_command(peers_and_commands)
+        get_status(peers, :pinging)
+        peers
+      end).()
+    end).()
+
+  end
+
   def connect(peers) do
     peers
     |> Enum.map(fn {_peer_id, peer_name} ->
@@ -23,7 +98,28 @@ This module exists purely to accelerate debugging
       status
     end)
     |> Enum.filter(fn status -> status == true end)
-    |> (fn connected -> Enum.count(connected) == Enum.count(peers) end).()
+    |> (fn connected ->
+      case Enum.count(connected) == Enum.count(peers) do
+        true ->
+          {:ok, peers}
+        false ->
+          {:error, "Not connected to all peers"}
+      end
+    end).()
+  end
+
+  def verify_status(peers, expected_status) do
+    peers
+    |> get_status(expected_status)
+    |> Enum.filter(fn status -> status == expected_status end)
+    |> (fn status_ok_list ->
+      case Enum.count(status_ok_list) == Enum.count(peers) do
+        true ->
+          {:ok, peers}
+        false ->
+          {:error, "All peers are not in expected state"}
+      end
+    end).()
   end
 
   def get_status(peers, expected_status) do
@@ -37,7 +133,7 @@ This module exists purely to accelerate debugging
         pid ->
           {:ok, status} = GenServer.call(pid, :get_status)
           if status != expected_status do
-            Logger.error "controller - #{name} is in #{status}"
+            Logger.error "controller - #{name} is in #{status}. Expected #{expected_status}"
           end
           status
       end
