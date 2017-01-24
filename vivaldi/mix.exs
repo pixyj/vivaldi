@@ -5,6 +5,7 @@ defmodule Vivaldi.Mixfile do
     [app: :vivaldi,
      version: "0.1.0",
      elixir: "~> 1.3",
+     escript: escript_config,
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      deps: deps(),
@@ -17,8 +18,7 @@ defmodule Vivaldi.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger, :timex],
-     mod: {Vivaldi, []}]
+    [applications: [:logger, :timex]]
   end
 
   # Dependencies can be Hex packages:
@@ -34,6 +34,13 @@ defmodule Vivaldi.Mixfile do
     [{:ex_doc, "~> 0.14.5"},
      {:excoveralls, "~> 0.6.0"},
      {:timex, "~> 3.0"},
+     {:poison, "~> 3.0"},
+     {:tzdata, "== 0.1.8", override: true},
     ]
   end
+
+  defp escript_config do
+    [ main_module: Vivaldi]
+  end
+  
 end

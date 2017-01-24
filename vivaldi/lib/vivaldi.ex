@@ -1,20 +1,37 @@
 defmodule Vivaldi do
-  use Application
 
-  # See http://elixir-lang.org/docs/stable/elixir/Application.html
-  # for more information on OTP Applications
-  def start(_type, _args) do
-    import Supervisor.Spec, warn: false
+  require Logger
 
-    # Define workers and child supervisors to be supervised
-    children = [
-      # Starts a worker by calling: Vivaldi.Worker.start_link(arg1, arg2, arg3)
-      # worker(Vivaldi.Worker, [arg1, arg2, arg3]),
-    ]
+  alias Vivaldi.Peer.Supervisor
 
-    # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
-    # for other strategies and supported options
-    opts = [strategy: :one_for_one, name: Vivaldi.Supervisor]
-    Supervisor.start_link(children, opts)
+  def main(argv) do
+    {options, _, _} = OptionParser.parse(argv)
+    
+    node_id = options[:nodeid] |> String.to_atom()
+    node_name = options[:nodename] |> String.to_atom()
+    cookie = options[:cookie] |> String.to_atom()
+    controller_name = options[:controllername] |> String.to_atom()
+    
+    {:ok, _pid} = Node.start(node_name)
+    Node.set_cookie(cookie)
+
+    Logger.info "#{node_id} - Started node #{Node.self}"
+
+    case Node.connect(controller_name) do 
+      true ->
+        Logger.info "#{node_id} - Connected to the controller. Starting PeerSupervisor..."
+
+        Supervisor.start_link(node_id)
+
+        # I couldn't get distillery to work. 
+        # So here's a hack to keep the application running 
+        # until we collect enough data for the experiment. 
+        :timer.sleep(1000 * 86400)
+      _ ->
+        Logger.error "Could not connect to controller. Exiting..."
+    end
+
+
   end
+  
 end
