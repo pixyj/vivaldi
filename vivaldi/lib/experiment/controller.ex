@@ -22,7 +22,7 @@ This module exists purely to accelerate debugging
   3. Ensure peers are ready. 
   4. Instruct peers to begin pinging each other
   """
-  def run(peers) do
+  def run(peers, common_config) do
     # TODO: This seems like a classic use case for railway-oriented programming. 
     # http://fsharpforfunandprofit.com/rop/ Learn how to implement it.
     # The problem is my individual steps are currently not composable...
@@ -41,9 +41,6 @@ This module exists purely to accelerate debugging
 
 
     # Setup configuration
-
-
-    common_config = [session_id: 1, ping_gap_interval: 200]
     configs = generate_peer_configs(peers, common_config)
 
     get_status(peers, :not_started)
