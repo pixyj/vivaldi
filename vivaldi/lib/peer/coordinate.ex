@@ -76,7 +76,7 @@ defmodule Vivaldi.Peer.Coordinate do
     weight = x_i[:error] / total_error
 
     error_next = config[:vivaldi_ce] * weight * wrongness + x_i[:error] * (1.0 - config[:vivaldi_ce] * weight)
-    error_next = max(error_next, config[:vivaldi_error_max])
+    error_next = min(error_next, config[:vivaldi_error_max])
 
     delta = config[:vivaldi_cc] * weight
     force = delta * (rtt - dist)
