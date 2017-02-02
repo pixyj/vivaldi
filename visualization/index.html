@@ -3,19 +3,87 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    
     <title>Vivaldi Visualization</title>
+
+    <link rel="stylesheet" type="text/css" href="index.css">
   </head>
   <body>
 
-    <div id="container"> </div>
+  <div id="controls">
+    <button id="event-play" class="event-btn">▶</button>
+    <button id="event-pause" class="event-btn">||</button>
+    <button id="event-replay" class="event-btn">⟳</button>
+  </div>
+
+  <div id="legend"> </div>
+
+  <div id="container"> </div>
+
+  <div id="current-event"> 
+    <table id="event-table">
+      <thead>
+        <tr>
+          <th>
+            i
+          </th>
+          <th>
+            j
+          </th>
+          <th>
+            Distance
+            Predicted(s)
+          </th>
+          <th>
+            Distance
+            Measured(s)
+          </th>
+          <th>
+            Distance
+            Error (%)
+          </th>
+        </tr>
+      </thead>
+    <tbody>
+    </tbody>
+    </table>
+  </div>
+
+  <div id="results"> 
+    <table id="results-table">
+      <thead>
+        <tr>
+          <th>
+            i
+          </th>
+          <th>
+            Error %
+            Mean
+          </th>
+          <th>
+          Error %
+          Std Deviation
+          </th>
+          <th>
+          Error %
+          Max
+          </th>
+          <th>
+          5 Closest Peers
+          </th>
+        </tr>
+      </thead>
+    <tbody>
+    </tbody>
+    </table>
+  </div>
+
 
     <script src="jq.js"></script>
-    <script src="https://code.highcharts.com/highcharts.js"></script>
-    <script src="https://code.highcharts.com/highcharts-3d.js"></script>
-    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="highcharts.js"></script>
+    <script src="highcharts-3d.js"></script>
+    <script src="exporting.js"></script>
 
-    <script src="events.js"></script>
+    <script src="circle-120-4.js"></script>
     <script src="index.js"></script>
     
   </body>
