@@ -33,7 +33,7 @@ defmodule ControllerTest do
   test "connect and get_status" do
     Node.start :"a@127.0.0.1"
     # Without sleep, Node.connect doesn't work.
-    :timer.sleep(100)
+    :timer.sleep(200)
 
     peers = [
       {:a, :"a@127.0.0.1"},
