@@ -5,7 +5,7 @@ defmodule SimpleVivaldiTest do
 
   test "test simple vivaldi" do
     {_, _, error} = SimpleVivaldi.run(10, 4)
-    assert error < 0.05
+    assert error < 0.1
   end
 
 end
