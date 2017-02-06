@@ -9,4 +9,4 @@ before_install:
 before_script:
   epmd -daemon
 script:
-  mix test --exclude multi_node
+  MIX_ENV=test mix do deps.get, compile, coveralls.travis --exclude multi_node
