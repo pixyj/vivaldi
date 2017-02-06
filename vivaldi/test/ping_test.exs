@@ -51,6 +51,7 @@ defmodule PingTest do
     :ok
   end
 
+  @tag multi_node: true
   test "Ping Once" do
     client_node_id = :a
     server_node_id = :d
@@ -71,6 +72,7 @@ defmodule PingTest do
 
   end
 
+  @tag multi_node: true
   test "Ping Multi" do
     server_node_id = :d
 

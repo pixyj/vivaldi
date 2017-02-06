@@ -29,7 +29,7 @@ defmodule ControllerTest do
 
   end
 
-  @tag c2: true
+  @tag multi_node: true
   test "connect and get_status" do
     Node.start :"a@127.0.0.1"
     # Without sleep, Node.connect doesn't work.

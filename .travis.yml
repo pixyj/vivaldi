@@ -8,3 +8,5 @@ before_install:
   cd vivaldi
 before_script:
   epmd -daemon
+script:
+  mix test --exclude multi_node
