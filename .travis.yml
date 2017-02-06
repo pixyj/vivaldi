@@ -6,3 +6,5 @@ matrix:
 sudo: false
 before_install:
   cd vivaldi
+before_script:
+  epmd -daemon
