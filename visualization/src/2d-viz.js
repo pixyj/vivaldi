@@ -1,5 +1,6 @@
 import Vector from './vector'
 import events1 from './centralized-events-1'
+import events2 from './centralized-events-2'
 
 const $ = window.$
 const anime = window.anime
@@ -57,8 +58,8 @@ class TwoDViz {
     const endPoints = event.forces.map(({from, vector}) => {
       return [event.x_i, event.coords[from]]
     })
-    await this.drawLines(endPoints, {cls: 'force', stroke: '#F44336'})
-    await this.drawLines([[event.x_i, event.totalForce]], {cls: 'force', stroke: '#FFEB3B'})
+    // await this.drawLines(endPoints, {cls: 'force', stroke: '#F44336'})
+    // await this.drawLines([[event.x_i, event.totalForce]], {cls: 'force', stroke: '#FFEB3B'})
     await this.drawLines([[event.x_i, event.x_i_next]], {cls: 'force-step', stroke: '#673AB7'})
     await this.movePoint(event.i, event.x_i_next)
     
@@ -143,7 +144,7 @@ class TwoDViz {
             stroke,
             'class': cls,
             'stroke-width': 1,
-            'marker-end': 'url(#Triangle)'
+            // 'marker-end': 'url(#Triangle)'
         })
         this.svg.appendChild(line)
         lines.push(line)
@@ -226,21 +227,33 @@ class TwoDViz {
 
 let initialCoords = [
   [0, 0],
-  [4, 0],
-  [10, 0],
-  [7, 7]
+  [0, 0],
+  [0, 0],
+  [0, 0]
 ]
+
+// let twoD = new TwoDViz({
+//   container: document.getElementById('two-d-viz-1'),
+//   width: 800,
+//   height: 400,
+//   minX: 0,
+//   maxX: 10,
+//   minY: 0,
+//   maxY: 7,
+//   initialCoords,
+//   events: events1.events
+// })
 
 let twoD = new TwoDViz({
   container: document.getElementById('two-d-viz-1'),
-  width: 1200,
-  height: 600,
-  minX: 0,
-  maxX: 12,
-  minY: 0,
-  maxY: 8,
+  width: 800,
+  height: 800,
+  minX: -5,
+  maxX: 5,
+  minY: -5,
+  maxY: 5,
   initialCoords,
-  events: events1.events
+  events: events2.events
 })
 
 twoD.render()
