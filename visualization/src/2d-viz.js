@@ -1,6 +1,17 @@
+import Vector from './vector'
+import events1 from './centralized-events-1'
+
+const $ = window.$
+const anime = window.anime
+
+
 class TwoDViz {
   
-  constructor({container, width, height, minX, maxX, minY, maxY, initialCoords, events}) {
+  constructor({container,
+               width, height,
+               minX, maxX,
+               minY, maxY,
+               initialCoords, events}) {
     this.el = container;
     this.width = width
     this.height = height
@@ -8,9 +19,23 @@ class TwoDViz {
     this.maxX = maxX
     this.minY = minY
     this.maxY = maxY
-    this.initialCoords = initialCoords
-    this.events = events
-    this.nextEventIndex = 0;
+
+    this.initialCoords = initialCoords.map(c => this.toSVGCoord(c))
+
+    this.events = events.map(e => {
+      return {
+        i: e.i,
+        x_i: this.toSVGCoord(e.x_i),
+        x_i_next: this.toSVGCoord(e.x_i_next),
+        totalForce: this.toSVGCoord(Vector.add(e.x_i, e.totalForce)),
+        forces: e.forces.map(f => {
+          return {from: f.from, vector: this.toSVGCoord(f.vector)}
+        })
+      }
+    })
+    
+    this.nextEventIndex = 0
+    this.length = this.events.length
   }
 
   reset() {
@@ -20,28 +45,69 @@ class TwoDViz {
     return this
   }
 
+  async start() {
+    while (this.nextEventIndex < this.length - 4) {
+      await this.next()
+    }
+  }
+
+  async next() {
+    const event = this.events[this.nextEventIndex++]
+    const endPoints = event.forces.map(({from, vector}) => {
+      return [event.x_i, this.initialCoords[from]]
+      
+    })
+    await this.drawLines(endPoints, {cls: 'force'})
+    await this.drawLines([[event.x_i, event.totalForce]], {cls: 'force'})
+    await this.drawLines([[event.x_i, event.x_i_next]])
+    await this.movePoint(event.i, event.x_i_next)
+    
+    return new Promise((resolve, _reject) => {
+      this.removeForces()
+      setTimeout(() => {
+        resolve(true)
+      }, 10)
+    })
+  }
+
+  removeForces() {
+    $(this.el).find('.force').remove()
+  }
+
+  render() {
+    this.initializeSvg()
+    this.circles = this.initialCoords.map((coord, i) => {
+      return this.drawPointAt(coord, i)
+    })
+    return this
+  }
+
   empty() {
     while (this.el.hasChildNodes()) {
       this.el.removeChild(this.el.lastChild)
     }
   }
 
-  render() {
-    this.initializeSvg()
-    this.initialCoords.forEach(coord => {
-      const point = this.toSVGCoord(coord)
-      this.drawPointAt(point)
+  movePoint(index, [cx, cy]) {
+    return new Promise((resolve, reject) => {
+      let circle = this.circles[index]
+      $(circle).animate(
+        {cx, cy},
+        {
+          step: function(v1) {$(this).attr('cx', v1)},
+          complete: function() {
+            resolve()
+          }
+        }
+      )
     })
-    return this
-  }
-
-  movePoint(index, nextCoord) {
-
   }
 
   toSVGCoord(coord) {
-    const margin = 10
     const [x, y] = coord
+
+    const margin = 10
+
     const rangeX = (this.maxX - this.minX) + margin
     const svgX = margin + (x-this.minX)*this.width/rangeX
 
@@ -51,7 +117,7 @@ class TwoDViz {
     return [svgX, svgY]
   }
 
-  drawPointAt([cx, cy]) {
+  drawPointAt([cx, cy], index) {
     const circle = this.createSvgEl('circle', {
       cx,
       cy,
@@ -59,14 +125,58 @@ class TwoDViz {
       fill: 'red'
     })
     this.svg.appendChild(circle)
+    return circle
   }
 
-  drawLineBetween(p1, p2) {
+  drawLines(endPoints, options) {
+    let {cls} = options || {}
+    return new Promise((resolve, _reject) => {
+      let lines = []
+      let targetProps = {}
+      let currentProps = {}
+      endPoints.forEach(([[x1, y1], [x2, y2]], i) => {
+        let line = this.createSvgEl('line', {
+            x1,
+            y1,
+            x2: x1,
+            y2: y1,
+            stroke: 'red',
+            'stroke-width': 1,
+            'marker-end': 'url(#Triangle)'
+        })
+        if (cls) {
+          line.setAttribute('class', cls)
+        }
+        this.svg.appendChild(line)
+        lines.push(line)
 
-  }
+        currentProps[i * 2] = x1
+        currentProps[i * 2 + 1] = y1
+        targetProps[i * 2] = x2
+        targetProps[i * 2 + 1] = y2
+      })
 
-  next() {
+      const lineCount = endPoints.length
 
+      let animationProps = {
+        duration: 30 * (this.length - this.nextEventIndex) / this.length,
+        easing: 'easeOutQuad',
+        update: function() {
+          for (let i = 0; i < lineCount; i++) {
+            let line = lines[i]
+            line.setAttribute('x2', currentProps[i * 2])
+            line.setAttribute('y2', currentProps[i * 2 + 1])
+          }
+        },
+        complete: function() {
+          resolve(true)
+        }
+      }
+
+      anime(Object.assign({targets: currentProps},
+                          targetProps,
+                          animationProps))
+    })
   }
 
   // svg stuff
@@ -90,19 +200,6 @@ class TwoDViz {
     return el;
   }
 
-  // drawLineBetween(a, b) {
-  //   var line = this.createSvgEl('line', {
-  //       x1: a[0],
-  //       y1: a[1],
-  //       x2: b[0],
-  //       y2: b[1],
-  //       stroke: 'red',
-  //       'stroke-width': 1,
-  //       'marker-end': 'url(#Triangle)'
-  //   });
-  //   this.svg.appendChild(line);
-  // }
-
   getTriangleMarkerDefinition() {
     let marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker')
     const markerAttrs = {
@@ -110,8 +207,8 @@ class TwoDViz {
         'viewBox': '0 0 10 10',
         'refX': '0',
         'refY': '5',
-        'markerWidth': '10',
-        'markerHeight': '10',
+        'markerWidth': '6',
+        'markerHeight': '6',
         'orient': 'auto'
     }
     for (let key of Object.keys(markerAttrs)) {
@@ -129,32 +226,26 @@ class TwoDViz {
 
 }
 
-let events1 = [
-  {
-    index: 0,
-    force: [10, 10],
-    next: [1, 1]
-  },
-  {
-    index: 0,
-    force: [10, 20],
-    next: [2, 3]
-  }
+let initialCoords = [
+  [0, 0],
+  [4, 0],
+  [10, 0],
+  [7, 7]
 ]
 
 let twoD = new TwoDViz({
   container: document.getElementById('two-d-viz-1'),
-  width: 500,
-  height: 500,
+  width: 1200,
+  height: 600,
   minX: 0,
-  maxX: 10,
+  maxX: 12,
   minY: 0,
-  maxY: 10,
-  initialCoords: [[3, 4], [5, 6], [8, 4], [0, 0]],
-  events: events1
+  maxY: 8,
+  initialCoords,
+  events: events1.events
 })
 
 twoD.render()
 
-window.twoD = twoD;
+window.t = twoD;
 
