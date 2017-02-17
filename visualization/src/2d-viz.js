@@ -30,7 +30,8 @@ class TwoDViz {
         totalForce: this.toSVGCoord(Vector.add(e.x_i, e.totalForce)),
         forces: e.forces.map(f => {
           return {from: f.from, vector: this.toSVGCoord(f.vector)}
-        })
+        }),
+        coords: e.coords.map(c => this.toSVGCoord(c))
       }
     })
     
@@ -54,12 +55,11 @@ class TwoDViz {
   async next() {
     const event = this.events[this.nextEventIndex++]
     const endPoints = event.forces.map(({from, vector}) => {
-      return [event.x_i, this.initialCoords[from]]
-      
+      return [event.x_i, event.coords[from]]
     })
-    await this.drawLines(endPoints, {cls: 'force'})
-    await this.drawLines([[event.x_i, event.totalForce]], {cls: 'force'})
-    await this.drawLines([[event.x_i, event.x_i_next]])
+    await this.drawLines(endPoints, {cls: 'force', stroke: '#F44336'})
+    await this.drawLines([[event.x_i, event.totalForce]], {cls: 'force', stroke: '#FFEB3B'})
+    await this.drawLines([[event.x_i, event.x_i_next]], {cls: 'force-step', stroke: '#673AB7'})
     await this.movePoint(event.i, event.x_i_next)
     
     return new Promise((resolve, _reject) => {
@@ -129,7 +129,7 @@ class TwoDViz {
   }
 
   drawLines(endPoints, options) {
-    let {cls} = options || {}
+    let {cls, stroke} = options
     return new Promise((resolve, _reject) => {
       let lines = []
       let targetProps = {}
@@ -140,13 +140,11 @@ class TwoDViz {
             y1,
             x2: x1,
             y2: y1,
-            stroke: 'red',
+            stroke,
+            'class': cls,
             'stroke-width': 1,
             'marker-end': 'url(#Triangle)'
         })
-        if (cls) {
-          line.setAttribute('class', cls)
-        }
         this.svg.appendChild(line)
         lines.push(line)
 

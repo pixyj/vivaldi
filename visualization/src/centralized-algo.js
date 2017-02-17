@@ -11,6 +11,17 @@ export default function simulate(coords, latencyMatrix, updateNodeIndices) {
   return updateEvents
 }
 
+
+const copyCoords = coords => coords.map(c => c)
+
+function *otherNodeIndices(length, i) {
+  for (let j = 0; j < length; j++) {
+    if (j !== i) {
+      yield j
+    }
+  }
+}
+
 function centralizedVivaldi(coords, latencyMatrix, t, i) {
   let forces = []
   const length = coords.length
@@ -29,13 +40,6 @@ function centralizedVivaldi(coords, latencyMatrix, t, i) {
   }
   const forceStep = Vector.scale(totalForce, t)
   const x_i_next = Vector.add(x_i, forceStep)
-  return {i, x_i, x_i_next, forces, totalForce}
+  return {i, x_i, x_i_next, forces, totalForce, coords: copyCoords(coords)}
 }
 
-function *otherNodeIndices(length, i) {
-  for (let j = 0; j < length; j++) {
-    if (j !== i) {
-      yield j
-    }
-  }
-}
