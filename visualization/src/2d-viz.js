@@ -14,7 +14,7 @@ class TwoDViz {
                width, height,
                minX, maxX,
                minY, maxY,
-               initialCoords, events}) {
+               initialCoords, events, showForcesAndArrows}) {
     this.el = container;
     this.width = width
     this.height = height
@@ -22,6 +22,7 @@ class TwoDViz {
     this.maxX = maxX
     this.minY = minY
     this.maxY = maxY
+    this.showForcesAndArrows = showForcesAndArrows
 
     this.initialCoords = initialCoords.map(c => this.toSVGCoord(c))
 
@@ -74,9 +75,11 @@ class TwoDViz {
     const endPoints = event.forces.map(({from, vector}) => {
       return [event.x_i, event.coords[from]]
     })
-    // await this.drawLines(endPoints, {cls: 'force', stroke: '#F44336'})
-    // await this.drawLines([[event.x_i, event.totalForce]], {cls: 'force', stroke: '#FFEB3B'})
-    await this.drawLines([[event.x_i, event.x_i_next]], {cls: 'force-step', stroke: '#673AB7'})
+    if (this.showForcesAndArrows) {
+      await this.drawLines(endPoints, {cls: 'force', stroke: '#F44336', showArrow: true})
+      await this.drawLines([[event.x_i, event.totalForce]], {cls: 'force', stroke: '#FFEB3B', showArrow: true})
+    }
+    await this.drawLines([[event.x_i, event.x_i_next]], {cls: 'force-step', stroke: '#673AB7', showArrow: this.showForcesAndArrows})
     await this.movePoint(event.i, event.x_i_next)
     
     return new Promise((resolve, _reject) => {
@@ -144,7 +147,7 @@ class TwoDViz {
   }
 
   drawLines(endPoints, options) {
-    let {cls, stroke} = options
+    let {cls, stroke, showArrow} = options
     return new Promise((resolve, _reject) => {
       let lines = []
       let targetProps = {}
@@ -158,8 +161,11 @@ class TwoDViz {
             stroke,
             'class': cls,
             'stroke-width': 1,
-            // 'marker-end': 'url(#Triangle)'
+            
         })
+        if (showArrow) {
+          line.setAttribute('marker-end', 'url(#Triangle)')
+        }
         this.svg.appendChild(line)
         lines.push(line)
 
@@ -239,38 +245,49 @@ class TwoDViz {
 
 }
 
-let initialCoords = [
+let initialCoords1 = [
+  [0, 0],
+  [4, 0],
+  [10, 0],
+  [7, 7]
+]
+
+let twoD1 = new TwoDViz({
+  container: document.getElementById('two-d-viz-1'),
+  width: 800,
+  height: 400,
+  minX: 0,
+  maxX: 10,
+  minY: 0,
+  maxY: 7,
+  initialCoords: initialCoords1,
+  events: events1.events,
+  showForcesAndArrows: true
+})
+
+twoD1.render()
+
+let initialCoords2 = [
   [0, 0],
   [0, 0],
   [0, 0],
   [0, 0]
 ]
 
-// let twoD = new TwoDViz({
-//   container: document.getElementById('two-d-viz-1'),
-//   width: 800,
-//   height: 400,
-//   minX: 0,
-//   maxX: 10,
-//   minY: 0,
-//   maxY: 7,
-//   initialCoords,
-//   events: events1.events
-// })
-
-let twoD = new TwoDViz({
-  container: document.getElementById('two-d-viz-1'),
+let twoD2 = new TwoDViz({
+  container: document.getElementById('two-d-viz-2'),
   width: 800,
   height: 800,
   minX: -5,
   maxX: 5,
   minY: -5,
   maxY: 5,
-  initialCoords,
-  events: events2.events
+  initialCoords: initialCoords2,
+  events: events2.events,
+  showForcesAndArrows: false
 })
 
-twoD.render()
 
-window.t = twoD;
+
+twoD2.render()
 
