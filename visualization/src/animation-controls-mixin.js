@@ -10,11 +10,12 @@ export default {
   },
 
   renderControls(container) {
-    this.playBtn = $("<button>").addClass("mdl-button mdl-button--colored").html('▶')
-    this.pauseBtn = $("<button>").addClass("mdl-button mdl-button--colored btn-pause").html('||')
-    this.replayBtn = $("<button>").addClass("mdl-button mdl-button--colored btn-replay").html('⟳')
-    
-    let parent = $("<div>").addClass('anim-control').append(this.playBtn).append(this.pauseBtn).append(this.replayBtn)
+    this.playBtn = $("<button>").addClass("mdl-button mdl-button--colored btn-anim").html('▶')
+    this.pauseBtn = $("<button>").addClass("mdl-button mdl-button--colored btn-pause btn-anim").html('||')
+    this.replayBtn = $("<button>").addClass("mdl-button mdl-button--colored btn-replay btn-anim").html('⟳')
+      
+    let buttons = $("<div>").addClass('anim-buttons').append(this.playBtn).append(this.pauseBtn).append(this.replayBtn)
+    let parent = $("<div>").addClass('anim-control').append(buttons)
     $(container).append(parent)
     return this
   },

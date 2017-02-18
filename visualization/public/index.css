@@ -1,16 +1,42 @@
 .two-d-viz {
-  padding-left: 2rem
+  margin-left: 15%
 }
 
 svg {
-  background: rgba(33, 150, 243, 0.29);
+  border: 1px dashed #ff5992
 }
 
 .anim-control {
   display: flex;
+  height: 3.5rem
+}
+
+.anim-buttons {
+  width: 20%
 }
 
 .btn-pause, .btn-replay {
   display: none;
 }
 
+.btn-anim {
+  line-height: 2rem;
+  font-size: 2rem;
+  margin-bottom: 0.5rem
+}
+
+.legend-color {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.legend-item {
+  display: flex;
+}
+
+.legend-item div {
+  margin-top: 6px;
+  margin-right: 1rem;
+  margin-left: 1rem;
+  margin-bottom: 0.5rem;
+}

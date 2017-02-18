@@ -47,7 +47,31 @@ class TwoDViz {
     }
 
     this.initControls(container)
+
+    if (showForcesAndArrows) {
+      this.renderLegend()
+    }
   }
+
+  renderLegend() {
+    let parent = $(this.el).find('.anim-control')
+
+    let items = [
+      ['Individual Forces', 'red'],
+      ['Total Force', 'yellow'],
+      ['Force Step', 'purple']
+    ]
+
+    items.forEach(([label, color]) => {
+      let item = $("<div>").addClass('legend-item')
+                           .append($("<div>").addClass('legend-color').css('background', color))
+                           .append($("<div>").html(label))
+      parent.append(item)
+    })
+
+    // $(this.el).append(parent)
+  }
+
 
   reset() {
     this.nextEventIndex = 0
@@ -57,7 +81,7 @@ class TwoDViz {
   }
 
   async play() {
-    while (this.nextEventIndex < this.length) {
+    while (this.nextEventIndex < this.length - 4) {
       if (this.isPaused) {
         return
       }
@@ -71,6 +95,7 @@ class TwoDViz {
   }
 
   async next() {
+    const colors = ['#3f51b5', '#ffc107', '#ff5722', '#795548']
     const event = this.events[this.nextEventIndex++]
     const endPoints = event.forces.map(({from, vector}) => {
       return [event.x_i, event.coords[from]]
@@ -79,7 +104,7 @@ class TwoDViz {
       await this.drawLines(endPoints, {cls: 'force', stroke: '#F44336', showArrow: true})
       await this.drawLines([[event.x_i, event.totalForce]], {cls: 'force', stroke: '#FFEB3B', showArrow: true})
     }
-    await this.drawLines([[event.x_i, event.x_i_next]], {cls: 'force-step', stroke: '#673AB7', showArrow: this.showForcesAndArrows})
+    await this.drawLines([[event.x_i, event.x_i_next]], {cls: 'force-step', stroke: colors[event.i], showArrow: this.showForcesAndArrows})
     await this.movePoint(event.i, event.x_i_next)
     
     return new Promise((resolve, _reject) => {
@@ -124,23 +149,24 @@ class TwoDViz {
   toSVGCoord(coord) {
     const [x, y] = coord
 
-    const margin = 10
+    const rangeX = (this.maxX - this.minX)
+    const svgX = 5 + 0.97*(x-this.minX)*this.width/rangeX
 
-    const rangeX = (this.maxX - this.minX) + margin
-    const svgX = margin + (x-this.minX)*this.width/rangeX
-
-    const rangeY = (this.maxY - this.minY) + margin
-    const svgY = margin + (this.maxY - y)*this.height/rangeY
+    const rangeY = (this.maxY - this.minY)
+    const svgY = 5 + 0.97*(this.maxY - y)*this.height/rangeY
 
     return [svgX, svgY]
   }
 
   drawPointAt([cx, cy], index) {
+
+    const colors = ['#3f51b5', '#ffc107', '#ff5722', '#795548']
+
     const circle = this.createSvgEl('circle', {
       cx,
       cy,
       r: 3,
-      fill: 'red'
+      fill: colors[index]
     })
     this.svg.appendChild(circle)
     return circle
@@ -178,7 +204,7 @@ class TwoDViz {
       const lineCount = endPoints.length
 
       let animationProps = {
-        duration: 30 * (this.length - this.nextEventIndex) / this.length,
+        duration: 20 * (this.length - this.nextEventIndex) / this.length,
         easing: 'easeOutQuad',
         update: function() {
           for (let i = 0; i < lineCount; i++) {
@@ -249,17 +275,21 @@ let initialCoords1 = [
   [0, 0],
   [4, 0],
   [10, 0],
-  [7, 7]
+  [7, 9]
 ]
+
+
+let width = window.innerWidth * 0.7
+let height = window.innerHeight * 0.8
 
 let twoD1 = new TwoDViz({
   container: document.getElementById('two-d-viz-1'),
-  width: 800,
-  height: 400,
-  minX: 0,
-  maxX: 10,
-  minY: 0,
-  maxY: 7,
+  width,
+  height,
+  minX: -0.2,
+  maxX: 10.2,
+  minY: -0.2,
+  maxY: 9.2,
   initialCoords: initialCoords1,
   events: events1.events,
   showForcesAndArrows: true
@@ -276,18 +306,15 @@ let initialCoords2 = [
 
 let twoD2 = new TwoDViz({
   container: document.getElementById('two-d-viz-2'),
-  width: 800,
-  height: 800,
-  minX: -5,
-  maxX: 5,
-  minY: -5,
-  maxY: 5,
+  width,
+  height,
+  minX: -4.3,
+  maxX: 5.2,
+  minY: -4,
+  maxY: 4.8,
   initialCoords: initialCoords2,
   events: events2.events,
   showForcesAndArrows: false
 })
 
-
-
 twoD2.render()
-
