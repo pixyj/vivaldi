@@ -1,0 +1,12 @@
+svg {
+  background: rgba(33, 150, 243, 0.29);
+}
+
+.anim-control {
+  display: flex;
+}
+
+.btn-pause, .btn-replay {
+  display: none;
+}
+

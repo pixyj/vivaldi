@@ -2,6 +2,8 @@ import Vector from './vector'
 import events1 from './centralized-events-1'
 import events2 from './centralized-events-2'
 
+import animationControlsMixin from './animation-controls-mixin'
+
 const $ = window.$
 const anime = window.anime
 
@@ -38,6 +40,12 @@ class TwoDViz {
     
     this.nextEventIndex = 0
     this.length = this.events.length
+
+    for (let key of Object.keys(animationControlsMixin)) {
+      this[key] = animationControlsMixin[key]
+    }
+
+    this.initControls(container)
   }
 
   reset() {
@@ -47,10 +55,18 @@ class TwoDViz {
     return this
   }
 
-  async start() {
-    while (this.nextEventIndex < this.length - 4) {
+  async play() {
+    while (this.nextEventIndex < this.length) {
+      if (this.isPaused) {
+        return
+      }
       await this.next()
     }
+    this.showReplayButton()
+  }
+
+  pause() {
+    this.isPaused = true
   }
 
   async next() {
@@ -84,9 +100,7 @@ class TwoDViz {
   }
 
   empty() {
-    while (this.el.hasChildNodes()) {
-      this.el.removeChild(this.el.lastChild)
-    }
+    this.svg.remove()
   }
 
   movePoint(index, [cx, cy]) {
