@@ -7,6 +7,7 @@ import animationControlsMixin from './animation-controls-mixin'
 const $ = window.$
 const anime = window.anime
 
+const colors = ['#3f51b5', '#ffc107', '#ff5722', '#795548']
 
 class TwoDViz {
   
@@ -68,10 +69,7 @@ class TwoDViz {
                            .append($("<div>").html(label))
       parent.append(item)
     })
-
-    // $(this.el).append(parent)
   }
-
 
   reset() {
     this.nextEventIndex = 0
@@ -96,7 +94,6 @@ class TwoDViz {
   }
 
   async next() {
-    const colors = ['#3f51b5', '#ffc107', '#ff5722', '#795548']
     const event = this.events[this.nextEventIndex++]
     const endPoints = event.forces.map(({from, vector}) => {
       return [event.x_i, event.coords[from]]
@@ -175,9 +172,6 @@ class TwoDViz {
   }
 
   drawPointAt([cx, cy], index) {
-
-    const colors = ['#3f51b5', '#ffc107', '#ff5722', '#795548']
-
     const circle = this.createSvgEl('circle', {
       cx,
       cy,
@@ -286,6 +280,8 @@ class TwoDViz {
   }
 
 }
+
+// Configure visualization objects
 
 let initialCoords1 = [
   [0, 0],
