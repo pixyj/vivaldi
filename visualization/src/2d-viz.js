@@ -347,8 +347,20 @@ class TwoDViz {
 
 // Configure visualization objects
 
-let width = window.innerWidth * 0.7
-let height = window.innerHeight * 0.8
+let [width, height] = (function() {
+  var width
+  const innerWidth = window.innerWidth
+  if (innerWidth <= 768) {
+    width = innerWidth * 0.85
+  }
+  else if (innerWidth > 768 && innerWidth <= 992) {
+    width = innerWidth * 0.95
+  } else {
+    width = innerWidth * 0.7
+  }
+  let height = window.innerHeight * 0.65
+  return [width, height]
+})()
 
 let initialCoords1 = [
   [0, 0],
