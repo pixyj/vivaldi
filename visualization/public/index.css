@@ -25,6 +25,21 @@ svg {
   margin-bottom: 0.5rem
 }
 
+.anim-stage {
+  font-weight: bolder;
+  background: #3f51b5;
+  color: white;
+  line-height: 1.2rem;
+  height: 1.2rem;
+  font-size: 1.2rem;
+  padding-left: 1.2rem;
+  padding-right: 1.2rem;
+  padding-top: 0.3rem;
+  padding-bottom: 0.3rem;
+  margin-top: 5px;
+  margin-left: 10px;
+}
+
 .legend-color {
   width: 1.5rem;
   height: 1.5rem;

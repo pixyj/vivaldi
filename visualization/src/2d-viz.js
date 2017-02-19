@@ -96,13 +96,13 @@ class TwoDViz {
   }
 
   renderStage() {
-    this.stageView = $("<div>").html("1")
+    this.stageView = $("<div>").addClass('anim-stage').html("Stage 1")
     let parent = $(this.el).find('.anim-control')
     parent.append(this.stageView)
   }
 
   updateStageView(stage) {
-    this.stageView.html(stage + 1)
+    this.stageView.html("Stage " + (stage + 1))
   }
 
   reset() {
@@ -238,7 +238,7 @@ class TwoDViz {
       cx,
       cy,
       r: 3,
-      fill: colors[index % 4]
+      fill: colors[index % 6]
     })
     this.svg.appendChild(circle)
     return circle
