@@ -17,8 +17,8 @@ class TwoDViz {
                minX, maxX,
                minY, maxY,
                initialCoords, stagedInitialCoords,
-               events, stagedEvents, eventsSampleFactor,
-               showForcesAndArrows, showStage}) {
+               events, eventsSampleFactor,
+               showForcesAndArrows, showForceStep, showStage}) {
     this.el = container;
     this.width = width
     this.height = height
@@ -68,6 +68,7 @@ class TwoDViz {
 
     this.initControls(container)
 
+    this.showForceStep = showForceStep
     this.showStage = showStage
     if (showStage) {
       this.renderStage()
@@ -127,13 +128,11 @@ class TwoDViz {
       }
       const event = this.getNextEvent()
       if (event.stage !== this.currentStage) {
-        if (event.stage < this.currentStage) {
-          debugger
-        }
         this.currentStage = event.stage
-        this.updateStageView(this.currentStage)
+        if (this.showStage) {
+          this.updateStageView(this.currentStage)  
+        }
         await this.moveCoordsToInitialPositions(this.currentStage)
-        
       }
       await this.next(event)
     }
@@ -155,7 +154,9 @@ class TwoDViz {
       await this.drawLines(endPoints, {cls: 'force', stroke: '#F44336', showArrow: true})
       await this.drawLines([[event.x_i, event.totalForce]], {cls: 'force', stroke: '#FFEB3B', showArrow: true})
     }
-    // await this.drawLines([[event.x_i, event.x_i_next]], {cls: 'force-step', stroke: colors[event.i % 4], showArrow: this.showForcesAndArrows})
+    if (this.showForceStep) {
+      await this.drawLines([[event.x_i, event.x_i_next]], {cls: 'force-step', stroke: colors[event.i % 4], showArrow: this.showForcesAndArrows})  
+    }
     await this.movePoint(event.i, event.x_i_next)
     
     return new Promise((resolve, _reject) => {
@@ -345,6 +346,9 @@ class TwoDViz {
 
 // Configure visualization objects
 
+let width = window.innerWidth * 0.7
+let height = window.innerHeight * 0.8
+
 let initialCoords1 = [
   [0, 0],
   [4, 0],
@@ -352,50 +356,50 @@ let initialCoords1 = [
   [7, 9]
 ]
 
+let twoD1 = new TwoDViz({
+  container: document.getElementById('two-d-viz-1'),
+  width,
+  height,
+  minX: -0.2,
+  maxX: 10.2,
+  minY: -0.2,
+  maxY: 9.2,
+  initialCoords: initialCoords1,
+  stagedInitialCoords: [initialCoords1],
+  events: events1.events,
+  eventsSampleFactor: 1,
+  showForcesAndArrows: true,
+  showForceStep: true,
+  showStage: false,
+})
 
-let width = window.innerWidth * 0.7
-let height = window.innerHeight * 0.8
+twoD1.render()
 
-// let twoD1 = new TwoDViz({
-//   container: document.getElementById('two-d-viz-1'),
-//   width,
-//   height,
-//   minX: -0.2,
-//   maxX: 10.2,
-//   minY: -0.2,
-//   maxY: 9.2,
-//   initialCoords: initialCoords1,
-//   events: events1.events,
-//   eventsSampleFactor: 1,
-//   showForcesAndArrows: true,
-//   showStage: false,
-// })
+let initialCoords2 = [
+  [0, 0],
+  [0, 0],
+  [0, 0],
+  [0, 0]
+]
 
-// twoD1.render()
+let twoD2 = new TwoDViz({
+  container: document.getElementById('two-d-viz-2'),
+  width,
+  height,
+  minX: -4.3,
+  maxX: 5.2,
+  minY: -4,
+  maxY: 4.8,
+  initialCoords: initialCoords2,
+  stagedInitialCoords: [initialCoords2],
+  events: events2.events,
+  eventsSampleFactor: 1,
+  showForcesAndArrows: false,
+  showForceStep: true,
+  showStage: false,
+})
 
-// let initialCoords2 = [
-//   [0, 0],
-//   [0, 0],
-//   [0, 0],
-//   [0, 0]
-// ]
-
-// let twoD2 = new TwoDViz({
-//   container: document.getElementById('two-d-viz-2'),
-//   width,
-//   height,
-//   minX: -4.3,
-//   maxX: 5.2,
-//   minY: -4,
-//   maxY: 4.8,
-//   initialCoords: initialCoords2,
-//   events: events2.events,
-//   eventsSampleFactor: 1,
-//   showForcesAndArrows: false,
-//   showStage: false,
-// })
-
-// twoD2.render()
+twoD2.render()
 
 events3.initial_coords = events3.initial_coords.map(c => c.slice(0, 2))
 events3.staged_initial_coords = events3.staged_initial_coords.map(coords => coords.map(c => c.slice(0, 2)))
@@ -419,12 +423,14 @@ let twoD3 = new TwoDViz({
   initialCoords: events3.initial_coords,
   stagedInitialCoords: events3.staged_initial_coords,
   events: events3.events,
-  stagedEvents: events3.staged_events,
   eventsSampleFactor: 3,
   showForcesAndArrows: false,
+  showForceStep: false,
   showStage: true
 })
 
 twoD3.render()
 window.t = twoD3
 
+window.events1 = events1
+window.events2 = events2
