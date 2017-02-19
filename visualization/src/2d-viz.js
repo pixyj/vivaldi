@@ -18,7 +18,8 @@ class TwoDViz {
                minY, maxY,
                initialCoords, stagedInitialCoords,
                events, eventsSampleFactor,
-               showForcesAndArrows, showForceStep, showStage}) {
+               showForcesAndArrows, showForceStep, showStage,
+               eventAnimationDuration, gapBetweenEventAnimations}) {
     this.el = container;
     this.width = width
     this.height = height
@@ -27,6 +28,10 @@ class TwoDViz {
     this.minY = minY
     this.maxY = maxY
     this.showForcesAndArrows = showForcesAndArrows
+    this.showForceStep = showForceStep
+    this.showStage = showStage
+    this.eventAnimationDuration = eventAnimationDuration
+    this.gapBetweenEventAnimations = gapBetweenEventAnimations
 
     this.stagedInitialCoords = stagedInitialCoords
                                .map(coords => coords.map(c => this.toSVGCoord(c)))
@@ -68,8 +73,6 @@ class TwoDViz {
 
     this.initControls(container)
 
-    this.showForceStep = showForceStep
-    this.showStage = showStage
     if (showStage) {
       this.renderStage()
     }
@@ -192,10 +195,11 @@ class TwoDViz {
     for (let j = 0; j < this.coordsPerStage; j++) {
       let i = startIndex + j
       this.circles[i] = this.drawPointAt([0, 0], i)
-      let p = this.movePoint(i, coords[j])
+      let p = this.movePoint(i, coords[j], 300)
+      await this.delay(150)
       promises.push(p)
-      await this.delay(40)
     }
+    await this.delay(500)
     return Promise.all(promises)
   }
 
@@ -205,14 +209,14 @@ class TwoDViz {
     })
   }
 
-  movePoint(index, [cx, cy]) {
-    
+  movePoint(index, [cx, cy], duration) {
+    duration = duration || this.eventAnimationDuration
     return new Promise((resolve, reject) => {
       let circle = this.circles[index]
       $(circle).animate(
         {cx, cy},
         {
-          duration: 40,
+          duration: duration,
           step: function(v1) {$(this).attr('cx', v1)},
           complete: function() {
             resolve(circle)
@@ -371,6 +375,8 @@ let twoD1 = new TwoDViz({
   showForcesAndArrows: true,
   showForceStep: true,
   showStage: false,
+  eventAnimationDuration: 600,
+  gapBetweenEventAnimations: 60,
 })
 
 twoD1.render()
@@ -397,6 +403,8 @@ let twoD2 = new TwoDViz({
   showForcesAndArrows: false,
   showForceStep: true,
   showStage: false,
+  eventAnimationDuration: 300,
+  gapBetweenEventAnimations: 30,
 })
 
 twoD2.render()
@@ -426,7 +434,9 @@ let twoD3 = new TwoDViz({
   eventsSampleFactor: 3,
   showForcesAndArrows: false,
   showForceStep: false,
-  showStage: true
+  showStage: true,
+  eventAnimationDuration: 60,
+  gapBetweenEventAnimations: 10,
 })
 
 twoD3.render()
