@@ -57,9 +57,9 @@ class TwoDViz {
     let parent = $(this.el).find('.anim-control')
 
     let items = [
-      ['Individual Forces', 'red'],
-      ['Total Force', 'yellow'],
-      ['Force Step', 'purple']
+      ['Individual Forces', '#F44336'],
+      ['Total Force', '#FFEB3B'],
+      ['Force Step', '#3f51b5']
     ]
 
     items.forEach(([label, color]) => {
@@ -81,6 +81,7 @@ class TwoDViz {
   }
 
   async play() {
+    await this.moveCoordsToInitialPositions()
     while (this.nextEventIndex < this.length - 4) {
       if (this.isPaused) {
         return
@@ -121,14 +122,29 @@ class TwoDViz {
 
   render() {
     this.initializeSvg()
-    this.circles = this.initialCoords.map((coord, i) => {
-      return this.drawPointAt(coord, i)
-    })
     return this
   }
 
   empty() {
     this.svg.remove()
+  }
+
+  async moveCoordsToInitialPositions() {
+    this.circles = new Array(this.initialCoords.length)
+    let promises = []
+    for (let i = 0; i < this.initialCoords.length; i++) {
+      this.circles[i] = this.drawPointAt([0, 0], i)
+      let p = this.movePoint(i, this.initialCoords[i])
+      promises.push(p)
+      await this.delay(40)
+    }
+    return Promise.all(promises)
+  }
+
+  delay(t) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => resolve(), t)
+    })
   }
 
   movePoint(index, [cx, cy]) {
@@ -139,7 +155,7 @@ class TwoDViz {
         {
           step: function(v1) {$(this).attr('cx', v1)},
           complete: function() {
-            resolve()
+            resolve(circle)
           }
         }
       )
