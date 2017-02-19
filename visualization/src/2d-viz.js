@@ -1,12 +1,12 @@
 import Vector from './vector'
 import events1 from './centralized-events-1'
 import events2 from './centralized-events-2'
+import events3 from './distributed-events-3'
 
 import animationControlsMixin from './animation-controls-mixin'
 
 const $ = window.$
 const anime = window.anime
-const events3 = window.events3
 
 const colors = ['#3f51b5', '#ffc107', '#ff5722', '#795548', '#00BCD4', '#ff9800']
 
@@ -147,9 +147,6 @@ class TwoDViz {
   }
 
   async next(event) {
-    if (this.nextEventIndex % 100 === 0) {
-      console.info('Event: ', this.nextEventIndex)
-    }
     if (this.showForcesAndArrows) {
       const endPoints = event.forces.map(({from, vector}) => {
         return [event.x_i, event.coords[from]]
@@ -441,6 +438,3 @@ let twoD3 = new TwoDViz({
 
 twoD3.render()
 window.t = twoD3
-
-window.events1 = events1
-window.events2 = events2
