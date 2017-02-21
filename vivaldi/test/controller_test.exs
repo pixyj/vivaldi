@@ -4,7 +4,7 @@ defmodule ControllerTest do
 
   alias Vivaldi.Peer.ExperimentCoordinator
 
-  alias Vivaldi.Experiment.Controller
+  alias Vivaldi.Experiment.{Controller, Logcentral}
 
   test "generate_peer_configs" do
     peers = [
@@ -41,6 +41,10 @@ defmodule ControllerTest do
       {:c, :"a@127.0.0.1"},
     ]
 
+    # Start logcentral
+    log_path = "/tmp/controller-test-events.log"
+    {:ok, _} = Logcentral.start_link(log_path)
+
     # Start peers. 
     Enum.map(peers, fn {peer_id, _} ->
       {:ok, state_agent} = Agent.start_link fn -> {:not_started, nil} end, []
@@ -58,6 +62,8 @@ defmodule ControllerTest do
       {:c, :"a@127.0.0.1"},
     ]
     {:error, _} = Controller.connect(peers)
+
+    Node.stop()
   end
 
   test "commands" do
@@ -73,6 +79,10 @@ defmodule ControllerTest do
     ]
     common_config = [session_id: 1, ping_gap_interval: 200]
     configs = Controller.generate_peer_configs(peers, common_config)
+
+    # Start logcentral
+    log_path = "/tmp/controller-test-events.log"
+    {:ok, _} = Logcentral.start_link(log_path)
 
     # Start peers. 
     Enum.map(peers, fn {peer_id, _} ->
@@ -128,7 +138,8 @@ defmodule ControllerTest do
 
     # Wait, hoping there aren't any crashes :) 
     :timer.sleep(2000)
-    
+    Node.stop()
+    :ok = File.rm("/tmp/controller-test-events.log")
   end
   
 end

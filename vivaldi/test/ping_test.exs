@@ -48,6 +48,11 @@ defmodule PingTest do
     CoordinateStash.start_link(server_config())
     CoordinateStash.set_coordinate(server_node_id, server_coordinate)
     PingServer.start_link(server_config())
+
+    on_exit fn ->
+      :ok = Node.stop()
+    end
+
     :ok
   end
 
