@@ -19,8 +19,6 @@ defmodule Vivaldi do
 
     case Node.connect(controller_name) do 
       true ->
-        Logger.info "#{node_id} - Connected to the controller. Starting PeerSupervisor..."
-
         Supervisor.start_link(node_id)
 
         # I couldn't get distillery to work. 

@@ -18,7 +18,6 @@ defmodule Vivaldi.Peer.PingClient do
 
   def start_link(config) do
     node_id = config[:node_id]
-    Logger.info "#{node_id} - starting PingClient..."
     GenServer.start_link(__MODULE__, config, name: get_name(node_id))
   end
 
@@ -63,8 +62,6 @@ defmodule Vivaldi.Peer.PingClient do
 
     name = get_periodic_pinger_name(node_id)
     Process.register pid, name
-    
-    Logger.info "#{node_id} - Spawned periodic_pinger..."
     pid
   end
 
@@ -80,7 +77,6 @@ defmodule Vivaldi.Peer.PingClient do
     |> Enum.map(fn peer_id ->
       case ping_multi(config, peer_id) do
         {:ok, {rtt, other_coordinate}} ->
-          Logger.info "#{node_id} -> ping_multi to #{peer_id } done!"
           Coordinate.update_coordinate(node_id, peer_id, other_coordinate, rtt)
         {:error, reason} ->
           Logger.error "#{node_id} - ping_multi to #{peer_id} failed. #{reason}"
@@ -95,7 +91,6 @@ defmodule Vivaldi.Peer.PingClient do
     start_ping_id = generate_start_ping_id()
     case Connections.get_peer_ping_server(node_id, peer_id) do
       {:ok, server_pid} ->
-        # Logger.info "#{node_id} - Pinging #{peer_id} #{times} times..."
         Stream.map(1..times, fn i ->
           ping_once(config, peer_id, server_pid, start_ping_id + i)
         end)
@@ -113,14 +108,12 @@ defmodule Vivaldi.Peer.PingClient do
 
   def ping_once(config, peer_id, peer_server_pid, ping_id) do
     {node_id, session_id, timeout} = {config[:node_id], config[:session_id], config[:ping_timeout]}
-    # Logger.info "#{node_id} - sending ping: #{ping_id} to #{peer_id}"
     start = Duration.now()
     response = PingServer.ping(node_id, session_id, peer_id, peer_server_pid, ping_id, timeout)
     finish = Duration.now()
 
     case response do
       {:pong, payload} ->
-        # Logger.info "#{node_id} - received pong: #{ping_id} from #{peer_id}"
         rtt = calculate_rtt(start, finish)
         other_coordinate = payload[:coordinate]
         {:pong, {rtt, other_coordinate}}

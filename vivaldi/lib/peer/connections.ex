@@ -15,7 +15,6 @@ defmodule Vivaldi.Peer.Connections do
 
   def start_link(config) do
     node_id = config[:node_id]
-    Logger.info "#{node_id} - starting Connections..."
     GenServer.start_link(__MODULE__, config, name: get_name(node_id))
   end
 
@@ -45,13 +44,10 @@ defmodule Vivaldi.Peer.Connections do
     peer_name = peer_names_by_id[peer_id]
 
     if peer_name in Node.list do
-      Logger.info("#{node_id} - peer:#{peer_name} CONNECTED already!")
       return_server_pid(peer_id, config)
     else
-      Logger.info("#{node_id} - peer:#{peer_name} NOT connected. Attempting to connect...")
       case Node.connect(peer_name) do
         true ->
-          Logger.info("#{node_id} - CONNECTED to #{peer_name}!")
           # :global.whereis doesn't work without sleeping in my dev machine. 
           # TODO: How does this work under the hood?
           :timer.sleep(config[:whereis_name_wait_interval])

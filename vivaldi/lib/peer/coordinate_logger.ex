@@ -28,7 +28,7 @@ defmodule Vivaldi.Peer.CoordinateLogger do
     case get_logcentral_pid(logcentral_pid) do
       nil ->
         # TODO: Send pending messages when logcentral comes back up. 
-        Logger.error("FATAL error. logcentral pid not found. ")
+        Logger.error("#{config[:node_id]} - FATAL error. logcentral pid not found. ")
         {:noreply, {config, nil}}
 
       new_logcentral_pid -> 

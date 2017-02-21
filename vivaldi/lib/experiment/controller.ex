@@ -146,7 +146,6 @@ This module exists purely to accelerate debugging
           Logger.error "controller - #{name} not found through :global.whereis_name"
           :error
         pid ->
-          Logger.info "controller - sending command #{inspect command}"
           result = GenServer.call(pid, command)
           {peer_id, result}
       end

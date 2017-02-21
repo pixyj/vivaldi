@@ -54,7 +54,6 @@ defmodule Vivaldi.Peer.ExperimentCoordinator do
     log_command_received(node_id, :configure, :not_started)
     Agent.update(state_agent, fn {status, _} -> {status, config} end)
     spawn_algo_sup(config)
-    Logger.info "Spawned AlgorithmSupervisor with config: #{inspect config}"
     log_command_executed(node_id, :configure, :not_started)
 
     next_status = :just_started
@@ -151,7 +150,6 @@ defmodule Vivaldi.Peer.ExperimentCoordinator do
   def set_status(node_id, state_agent, status, next_status) do
     if status != next_status do
       Agent.update(state_agent, fn {_, config} -> {next_status, config} end)
-      Logger.info "#{node_id} - changed status #{status} -> #{next_status}"
     end
   end
 
@@ -160,11 +158,11 @@ defmodule Vivaldi.Peer.ExperimentCoordinator do
   end
 
   def log_command_received(node_id, command, status) do
-    Logger.info "#{node_id} - at status: #{status} - received command #{command}"
+    # Logger.info "#{node_id} - at status: #{status} - received command #{command}"
   end
 
   def log_command_executed(node_id, command, status) do
-    Logger.info "#{node_id} - at status: #{status} - executed command #{command}"
+    # Logger.info "#{node_id} - at status: #{status} - executed command #{command}"
   end
 
 end
