@@ -26,21 +26,14 @@ defmodule Vivaldi.Peer.ExperimentCoordinator do
 
   def init([node_id, state_agent]) do
 
-    name = get_name(node_id)
-    config = case get_config(state_agent) do
-      nil ->
-        "not configured yet"
-      c ->
-        c
-    end
-    Logger.info "#{node_id} - starting #{name}:  #{config}"
     status = Agent.get(state_agent, fn {status, _} -> status end)
+    name = get_name(node_id)
     :yes = :global.register_name(name, self)
     {:ok, {status, state_agent, node_id}}
   end
 
   def handle_info({:EXIT, pid, reason}, {:pinging, state_agent, node_id}) do
-    IO.puts "AlgorithmSupervisor,  #{pid} crashed #{inspect reason}. Restarting..."
+    Logger.warn "AlgorithmSupervisor,  #{pid} crashed #{inspect reason}. Restarting..."
     config = Agent.get(state_agent, fn {_, config} -> config end)
     spawn_algo_sup(config)
     {:noreply, {:pinging, state_agent, node_id}}
@@ -51,10 +44,8 @@ defmodule Vivaldi.Peer.ExperimentCoordinator do
   end
 
   def handle_call({:configure_and_run, config}, _, {:not_started, state_agent, node_id}) do
-    log_command_received(node_id, :configure, :not_started)
     Agent.update(state_agent, fn {status, _} -> {status, config} end)
     spawn_algo_sup(config)
-    log_command_executed(node_id, :configure, :not_started)
 
     next_status = :just_started
     set_status(node_id, state_agent, :not_started, next_status)
@@ -62,7 +53,6 @@ defmodule Vivaldi.Peer.ExperimentCoordinator do
   end
 
   def handle_call(:get_ready, _, {:just_started, state_agent, node_id}) do
-    log_command_received(node_id, :get_ready, :just_started)
     names = [
       Connections.get_name(node_id),
       Coordinate.get_name(node_id),
@@ -93,7 +83,6 @@ defmodule Vivaldi.Peer.ExperimentCoordinator do
     end)
     |> (fn nil_statuses -> Enum.count(nil_statuses) == 0 end).()
 
-    log_command_executed(node_id, :get_ready, :just_started)
     if ready? do
       set_status(node_id, state_agent, :just_started, :get_ready)
       {:reply, :ok, {:ready, state_agent, node_id}}
@@ -110,7 +99,6 @@ defmodule Vivaldi.Peer.ExperimentCoordinator do
         response
       {:ok, _} ->
         PingClient.begin_pings(node_id)
-        log_command_executed(node_id, :begin_pings, :ready)
 
         next_status = :pinging
         set_status(node_id, state_agent, :ready, next_status)
@@ -136,7 +124,6 @@ defmodule Vivaldi.Peer.ExperimentCoordinator do
   end
 
   def log_command_and_get_process(node_id, command, name, {status, state_agent, node_id}) do
-    log_command_received(node_id, command, status)
     case Process.whereis(name) do
       nil ->
         message = "#{node_id} - ignored #{command}: #{name} isn't running"
@@ -155,14 +142,6 @@ defmodule Vivaldi.Peer.ExperimentCoordinator do
 
   def get_config(state_agent) do
     Agent.get(state_agent, fn {_, config} -> config end)
-  end
-
-  def log_command_received(node_id, command, status) do
-    # Logger.info "#{node_id} - at status: #{status} - received command #{command}"
-  end
-
-  def log_command_executed(node_id, command, status) do
-    # Logger.info "#{node_id} - at status: #{status} - executed command #{command}"
   end
 
 end
