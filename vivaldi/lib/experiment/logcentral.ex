@@ -9,6 +9,19 @@ defmodule Vivaldi.Experiment.Logcentral do
     GenServer.start_link(__MODULE__, {file_path})
   end
 
+  def to_json(src, dst) do
+    {:ok, content} = File.read(src)
+    content
+    |> String.trim()
+    |> String.trim_trailing(",")
+    |> (fn lines ->
+      "{\"events\": [#{lines}]}"
+    end).()
+    |> (fn json_content ->
+      File.write(dst, json_content)
+    end).()
+  end
+
   def init(args) do
     :yes = :global.register_name(:logcentral, self)
     {:ok, args}
@@ -18,7 +31,6 @@ defmodule Vivaldi.Experiment.Logcentral do
 
     # TODO: Implement a file backend. 
     # Until then, append events to a file
-
     %CoordinateUpdateEvent{}
     |> Map.merge(event)
     |> Poison.encode!()
