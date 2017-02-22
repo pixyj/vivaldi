@@ -14,19 +14,23 @@ This module exists purely to accelerate debugging
   alias Vivaldi.Peer.{Config, ExperimentCoordinator}
   alias Vivaldi.Experiment.Logcentral
 
+  def start(name, cookie, peer_names, session_id \\ 1) do
+    up(name, cookie, session_id)
+    peer_tuples = Enum.map(peer_names, fn name ->
+      [node_id, ip_addr] = String.split(name, "@")
+      {:"#{node_id}", :"#{node_id}@#{ip_addr}"}
+    end)
+    connect(peer_tuples)
+    run(peer_tuples, [session_id: session_id])
+  end
+
   def up(name, cookie, session_id \\ 1) do
     {:ok, _} = Node.start name
     Node.set_cookie cookie
-    {:ok, _} = Logcentral.start_link(log_path(session_id))
-  end
 
-  def start(session_id \\ 1) do
-    Node.list()
-    |> Enum.map(fn name ->
-      [node_id, ip_addr] = name |> Atom.to_string |> String.split("@")
-      {node_id, ip_addr}
-    end)
-    |> run([session_id: session_id])
+    # An error is thrown if we connect to peers immediately. So sleep for a short duration.
+    :timer.sleep(1000)
+    {:ok, _} = Logcentral.start_link(log_path(session_id))
   end
 
   def visualize(session_id \\ 1) do
