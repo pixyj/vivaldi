@@ -79,7 +79,7 @@ defmodule Vivaldi.Peer.PingClient do
         {:ok, {rtt, other_coordinate}} ->
           Coordinate.update_coordinate(node_id, peer_id, other_coordinate, rtt)
         {:error, reason} ->
-          Logger.error "#{node_id} - ping_multi to #{peer_id} failed. #{reason}"
+          Logger.error "#{node_id} - ping_multi to #{peer_id} failed. #{inspect reason}"
       end
       :timer.sleep(config[:ping_gap_interval])
     end)
@@ -87,6 +87,7 @@ defmodule Vivaldi.Peer.PingClient do
   end
 
   def ping_multi(config, peer_id) do
+    Logger.info "Pinging #{inspect peer_id}..."
     {node_id, times} = {config[:node_id], config[:ping_repeat]}
     start_ping_id = generate_start_ping_id()
     case Connections.get_peer_ping_server(node_id, peer_id) do

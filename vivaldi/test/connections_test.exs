@@ -13,7 +13,6 @@ defmodule ConnectionsTest do
 
   test "connections" do
     :timer.sleep(500)
-    IO.puts "Begin Testing...."
     node_id = :a
     peers = [
       {:b, :"b@127.0.0.1"},

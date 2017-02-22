@@ -33,7 +33,7 @@ defmodule Vivaldi.Peer.ExperimentCoordinator do
   end
 
   def handle_info({:EXIT, pid, reason}, {:pinging, state_agent, node_id}) do
-    Logger.warn "AlgorithmSupervisor,  #{pid} crashed #{inspect reason}. Restarting..."
+    Logger.warn "AlgorithmSupervisor,  #{inspect pid} crashed #{inspect reason}. Restarting..."
     config = Agent.get(state_agent, fn {_, config} -> config end)
     spawn_algo_sup(config)
     {:noreply, {:pinging, state_agent, node_id}}
@@ -44,6 +44,7 @@ defmodule Vivaldi.Peer.ExperimentCoordinator do
   end
 
   def handle_call({:configure_and_run, config}, _, {:not_started, state_agent, node_id}) do
+    Logger.info "Received configure command from controller"
     Agent.update(state_agent, fn {status, _} -> {status, config} end)
     spawn_algo_sup(config)
 
