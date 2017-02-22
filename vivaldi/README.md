@@ -27,10 +27,8 @@ The following processes run on each peer.
 
 **PeerSupervisor**: Top-level supervisor.
 
-___
 
-
-## Controller:
+### Controller:
 
 Before deploying Vivaldi on a cluster, we may need to tune the parameters of the algorithm. So, a `Controller` node is used to configure the peers, collect results, and make changes if required. 
 
@@ -40,12 +38,10 @@ The following processes run on the controller.
 
 **LogCentral**: Receives coordinate-update events from all peers and logs them to a file, used later for visualization, debugging and tuning.
 
-____
 
-## Simulation
+
+### Simulation
 
 If RTT(the round-trip-time) between each node pair is available, we can use it to simulate the algorithm, and check if it works in the presence of triangle inequalities.
 
 ____
-
-
