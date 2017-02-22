@@ -12,15 +12,29 @@ This module exists purely to accelerate debugging
   require Logger
 
   alias Vivaldi.Peer.{Config, ExperimentCoordinator}
+  alias Vivaldi.Experiment.Logcentral
+
+  def up(name, cookie) do
+    {:ok, _} = Node.start name
+    Node.set_cookie cookie
+    {:ok, _} = Logcentral.start_link "/tmp/vivaldi_events.log"
+  end
+
+  def start(session_id=1) do
+    # Begin!
+    Node.list()
+    |> Enum.map(fn name ->
+      [node_id, ip_addr] = name |> Atom.to_string |> String.split("@")
+      {node_id, ip_addr}
+    end)
+    |> run([session_id: session_id])
+  end
 
   @doc """
   Run the following sequence of commands to kickoff the Vivaldi algorithm on each peer.
-  
-  0. Start `logcentral`
-  1. Connect to peers
-  2. Configure peers
-  3. Ensure peers are ready. 
-  4. Instruct peers to begin pinging each other
+  1. Configure peers
+  2. Ensure peers are ready. 
+  3. Instruct peers to begin pinging each other
   """
   def run(peers, common_config) do
     # TODO: This seems like a classic use case for railway-oriented programming. 
@@ -169,5 +183,5 @@ This module exists purely to accelerate debugging
     end)
     |> Enum.into([])
   end
-  
+
 end
