@@ -3,6 +3,6 @@ Node.set_cookie :"hide_and_seek"
 
 :global.register_name(:"b-ping-server", self)
 
-:timer.sleep(10000 * 1000)
+:timer.sleep(10000)
 
 
