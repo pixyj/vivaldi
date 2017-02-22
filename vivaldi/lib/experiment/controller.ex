@@ -14,14 +14,13 @@ This module exists purely to accelerate debugging
   alias Vivaldi.Peer.{Config, ExperimentCoordinator}
   alias Vivaldi.Experiment.Logcentral
 
-  def up(name, cookie) do
+  def up(name, cookie, session_id \\ 1) do
     {:ok, _} = Node.start name
     Node.set_cookie cookie
-    {:ok, _} = Logcentral.start_link "/tmp/vivaldi_events.log"
+    {:ok, _} = Logcentral.start_link(log_path(session_id))
   end
 
-  def start(session_id=1) do
-    # Begin!
+  def start(session_id \\ 1) do
     Node.list()
     |> Enum.map(fn name ->
       [node_id, ip_addr] = name |> Atom.to_string |> String.split("@")
@@ -29,6 +28,13 @@ This module exists purely to accelerate debugging
     end)
     |> run([session_id: session_id])
   end
+
+  def visualize(session_id \\ 1) do
+    src = log_path(session_id)
+    dst = Path.absname("visualization/public/my_events.json", "./../")
+    Logcentral.to_json(src, dst)
+  end
+
 
   @doc """
   Run the following sequence of commands to kickoff the Vivaldi algorithm on each peer.
@@ -53,11 +59,11 @@ This module exists purely to accelerate debugging
     # |> send_command(:begin_pings)
     # Until then, here's a crude way to accomplish the same task: 
 
-
     # Setup configuration
     configs = generate_peer_configs(peers, common_config)
 
-    get_status(peers, :not_started)
+    status = get_status(peers, :not_started)
+    Logger.info "Status: #{inspect status}"
     
     # Run following commands
     # configure_and_run |> get_ready |> begin_pings
@@ -67,8 +73,10 @@ This module exists purely to accelerate debugging
       {{peer_id, peer_name}, command}
     end)
     |> (fn peers_and_commands -> 
+      Logger.info "sending command..., #{inspect peers_and_commands}"
       send_command(peers_and_commands)
-      get_status(peers, :just_started)
+      status = get_status(peers, :just_started)
+      Logger.info "Status: #{inspect status}"
       peers
     end).()
     |> (fn peers ->
@@ -78,9 +86,11 @@ This module exists purely to accelerate debugging
         {{peer_id, peer_name}, command}
       end)
       |> (fn peers_and_commands ->
+        Logger.info "sending command..., #{inspect peers_and_commands}"
         send_command(peers_and_commands)
 
-        get_status(peers, :ready)
+        status = get_status(peers, :ready)
+        Logger.info "Status: #{inspect status}"
         peers
       end).()
     end).()
@@ -91,8 +101,10 @@ This module exists purely to accelerate debugging
         {{peer_id, peer_name}, command}
       end)
       |> (fn peers_and_commands ->
+        Logger.info "sending command..., #{inspect peers_and_commands}"
         send_command(peers_and_commands)
-        get_status(peers, :pinging)
+        status = get_status(peers, :pinging)
+        Logger.info "Status: #{inspect status}"
         peers
       end).()
     end).()
@@ -182,6 +194,10 @@ This module exists purely to accelerate debugging
       peer_id != other_id
     end)
     |> Enum.into([])
+  end
+
+  defp log_path(session_id) do
+    "events_#{session_id}.log"
   end
 
 end
