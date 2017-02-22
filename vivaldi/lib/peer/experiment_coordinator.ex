@@ -134,7 +134,7 @@ defmodule Vivaldi.Peer.ExperimentCoordinator do
     end
   end
 
-  def set_status(node_id, state_agent, status, next_status) do
+  def set_status(_node_id, state_agent, status, next_status) do
     if status != next_status do
       Agent.update(state_agent, fn {_, config} -> {next_status, config} end)
     end
