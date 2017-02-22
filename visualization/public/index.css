@@ -53,13 +53,17 @@
   }
 }
 
+.anim-title {
+  text-align: center;
+}
+
 .anim-control {
   display: flex;
-  height: 3.5rem
+  height: 3.5rem;
 }
 
 .anim-buttons {
-  width: 20%
+  width: 20%;
 }
 
 .btn-pause, .btn-replay {
@@ -69,7 +73,7 @@
 .btn-anim {
   line-height: 2rem;
   font-size: 2rem;
-  margin-bottom: 0.5rem
+  margin-bottom: 0.5rem;
 }
 
 .anim-stage {

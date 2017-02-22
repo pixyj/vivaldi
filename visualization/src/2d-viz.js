@@ -10,9 +10,10 @@ const anime = window.anime
 
 const colors = ['#3f51b5', '#ffc107', '#ff5722', '#795548', '#00BCD4', '#ff9800']
 
+
 class TwoDViz {
   
-  constructor({container,
+  constructor({container, title,
                width, height,
                minX, maxX,
                minY, maxY,
@@ -71,6 +72,7 @@ class TwoDViz {
       this[key] = animationControlsMixin[key]
     }
 
+    this.renderTitle(title)
     this.initControls(container)
 
     if (showStage) {
@@ -80,6 +82,11 @@ class TwoDViz {
       this.renderLegend()
     }
 
+  }
+
+  renderTitle(title) {
+    var h4 = $("<h4>").addClass("anim-title").html(title)
+    $(this.el).append(h4)
   }
 
   renderLegend() {
@@ -124,7 +131,6 @@ class TwoDViz {
   }
 
   async play() {
-    
     while (this.nextEventIndex < (this.length - 4)) {
       if (this.isPaused) {
         return
@@ -371,6 +377,7 @@ let initialCoords1 = [
 
 let twoD1 = new TwoDViz({
   container: document.getElementById('two-d-viz-1'),
+  title: "Forces in action",
   width,
   height,
   minX: -0.2,
@@ -399,6 +406,7 @@ let initialCoords2 = [
 
 let twoD2 = new TwoDViz({
   container: document.getElementById('two-d-viz-2'),
+  title: "Centralized Algorithm",
   width,
   height,
   minX: -4.3,
@@ -431,6 +439,7 @@ events3.events = events3.events.map(e => {
 
 let twoD3 = new TwoDViz({
   container: document.getElementById('two-d-viz-3'),
+  title: "Distributed Algorithm",
   width,
   height,
   minX: events3.min_x,
@@ -449,4 +458,88 @@ let twoD3 = new TwoDViz({
 })
 
 twoD3.render()
-window.t = twoD3
+
+
+// Vizualize Custom data stored at 'my_events.json'
+
+
+function parseMyEvents({events}) {
+  let seenCoords = {}
+  let maxCoordIndex = 0
+  let initialCoords = []
+
+  let [minX, minY] = [Infinity, Infinity]
+  let [maxX, maxY] = [-Infinity, -Infinity]
+
+  let vizEvents = []
+
+  for (let i = 0, length = events.length; i < length; i++) {
+    let e = events[0]
+    if (seenCoords[e.i] === undefined) {
+      seenCoords[e.i] = maxCoordIndex++
+      initialCoords.push(e.x_i.vector)
+    }
+    vizEvents.push({
+      x_i: e.x_i.vector,
+      x_i_next: e.x_i_next.vector,
+      i: seenCoords[e.i],
+      stage: 0
+    })
+
+    let [x, y] = e.x_i_next.vector
+    if (x < minX) {
+      minX = x
+    }
+    if (x > maxX) {
+      maxX = x
+    }
+    if (y < minY) {
+      minY = y
+    }
+    if (y > maxY) {
+      maxY = y
+    }
+  }
+  return {
+    initialCoords: initialCoords,
+    events: vizEvents,
+    minX,
+    maxX,
+    minY,
+    maxY
+  }
+}
+
+function visualizeMyEvents() {
+  $.ajax({
+    url: '/my_events.json',
+    dataType: 'json',
+    success: function(data) {
+      let {initialCoords, events, minX, maxX, minY, maxY} = parseMyEvents(data)
+
+      let twoD0 = new TwoDViz({
+        container: document.getElementById('two-d-viz-0'),
+        title: "My visualization!",
+        width,
+        height,
+        minX: minX * 1.1,
+        maxX: maxX * 1.1,
+        minY: minY * 1.1,
+        maxY: maxY * 1.1,
+        initialCoords: initialCoords,
+        stagedInitialCoords: [initialCoords],
+        events,
+        eventsSampleFactor: 1,
+        showForcesAndArrows: false,
+        showForceStep: false,
+        showStage: false,
+        eventAnimationDuration: 200,
+        gapBetweenEventAnimations: 20,
+      })
+      twoD0.render()
+    }
+  })
+}
+
+visualizeMyEvents()
+
