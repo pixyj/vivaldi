@@ -45,14 +45,15 @@ mix escript.build
 
 **7.On each peer,**
 
-**    7.1 [Install Erlang](http://erlang.org/doc/installation_guide/INSTALL.html)**
+**7.1 [Install Erlang](http://erlang.org/doc/installation_guide/INSTALL.html)**
 
-**    7.2 Start the epmd daemon**
+**7.2 Start the epmd daemon**
+
 ```
 epmd -daemon
 ```
 
-**    7.3 Start the peer.**
+**7.3 Start the peer.**
 
 (Assign a unique node_id to each peer)
 
